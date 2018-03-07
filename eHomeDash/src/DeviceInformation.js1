@@ -1,0 +1,258 @@
+
+import React, {Component} from 'react';
+import InfoValues from './DeviceInformation.js';
+import humanizeDuration from 'humanize-duration';
+
+class InformationList extends Component {
+
+ constructor() {
+    super();
+    this.state={device1:[],device2:[]};
+
+
+ }
+  
+
+refresh(e){
+  function handleClick(e) {
+    e.preventDefault();
+    console.log('The link was clicked.');
+  }
+  this.forceUpdate();
+
+}
+
+restartDevice(device,e){
+function handleClick(e) {
+    e.preventDefault();
+    console.log('The link was clicked.');
+  }
+
+fetch(device, {
+  method: 'POST',
+}).then(console.log("device restarted"))
+
+
+}
+
+componentDidMount(){
+
+    
+
+  fetch(`http://mariusb.go.ro:1180/status`)
+    .then(result=>result.json())
+    .then(device1=>this.setState({device1}))
+
+  fetch(`http://mariusb.go.ro:1280/status`)
+    .then(result=>result.json())
+    .then(device2=>this.setState({device2}))
+
+
+
+}
+
+
+
+
+formatTime(device){
+	return humanizeDuration(device,
+{ 
+units: ['d', 'h', 'm'] ,
+
+round:true
+
+});
+
+}
+render(){
+	this.formatTime();
+	var style = {
+      width:'20rem',
+      'color':'white',
+      'backgroundColor': '#343a40',
+      'borderColor': '#343a40'
+    };
+
+	
+	return(
+	<div>
+	
+	<div className="row">
+	  <div className="col-sm-1">
+	  </div>	
+
+	  <div className="col-sm-3">
+	  	<div className="card card-inverse card-primary mb-3 text-left" style={style}>
+		  <div className="card-block">
+		    <h4 className="card-title text-center">LivingRoom</h4>
+
+  <table class="table">
+
+  <tbody>
+    <tr>
+    
+      <td>DeviceId</td>
+
+      <td>{this.state.device1.deviceId}</td>
+    </tr>
+    <tr>
+
+      <td>Heap size</td>
+    
+      <td>{this.state.device1.heap}</td>
+    </tr>
+    <tr>
+
+      <td>Wifi strength</td>
+  
+      <td>{this.state.device1.wifistr}</td>
+    </tr>
+
+    <tr>
+      <th>Sw state</th>
+  	<tr>
+      <td>Sw1</td>
+      <td>{this.state.device1.sW1_state}</td>
+    </tr>
+	<tr>
+	  <td>Sw2</td>
+      <td>{this.state.device1.sW2_state}</td>
+    </tr>
+    <tr>
+      <td>Sw3</td>
+      <td>{this.state.device1.sW3_state}</td>
+    </tr>
+    </tr>
+
+	<tr>
+
+      <td>Uptime</td>
+  
+      <td>{this.formatTime(this.state.device1.uptime)}</td>
+    </tr>
+
+    <tr>
+
+      <td>Restart reason</td>
+  
+      <td>{this.state.device1.lastReason}</td>
+    </tr>
+
+  </tbody>
+</table>
+		
+			 {/*   <p> DeviceId: {this.state.device1.deviceId}</p>
+			    <p> Heap size: {this.state.device1.heap}</p>
+			    <p> Wifi strength: {this.state.device1.wifistr}</p>
+			    <p> Sw1 state: {this.state.device2.sW1_state}</p>
+		    	<p> Sw2 state: {this.state.device2.sW2_state}</p>
+		    	<p> Sw3 state: {this.state.device2.sW3_state}</p>
+			    <p> Uptime: {this.state.device1.uptime}</p>
+			    <p> Restart reason: {this.state.device1.lastReason}</p>*/}
+			 </div>
+      <button onClick={(e) => this.restartDevice(`http://mariusb.go.ro:1180/reset`,e)} class="btn btn-primary">Restart</button>
+		  <button onClick={(e) => this.refresh()} class="btn btn-primary">Refresh</button>
+
+		</div>
+	  </div>
+
+<div className="col-sm-1"></div>
+	  	  <div className="col-sm-3">
+	  	<div className="card card-inverse card-primary mb-3 text-left" style={style}>
+	  	
+		  <div className="card-block">
+		    <h4 className="card-title text-center">Kitchen</h4>
+  <table class="table">
+
+  <tbody>
+    <tr>
+    
+      <td>DeviceId</td>
+
+      <td>{this.state.device2.deviceId}</td>
+    </tr>
+    <tr>
+
+      <td>Heap size</td>
+    
+      <td>{this.state.device2.heap}</td>
+    </tr>
+    <tr>
+
+      <td>Wifi strength</td>
+  
+      <td>{this.state.device2.wifistr}</td>
+    </tr>
+
+    <tr>
+      <th>Sw state</th>
+  	<tr>
+      <td>Sw1</td>
+      <td>{this.state.device2.sW1_state}</td>
+    </tr>
+	<tr>
+	  <td>Sw2</td>
+      <td>{this.state.device2.sW2_state}</td>
+    </tr>
+    <tr>
+      <td>Sw3</td>
+      <td>{this.state.device2.sW3_state}</td>
+    </tr>
+    </tr>
+
+	<tr>
+
+      <td>Uptime</td>
+  
+      <td>{this.formatTime(this.state.device2.uptime)}</td>
+    </tr>
+
+    <tr>
+
+      <td>Restart reason</td>
+  
+      <td>{this.state.device2.lastReason}</td>
+    </tr>
+
+  </tbody>
+</table>
+
+{/*
+		    	<p> DeviceId: {this.state.device2.deviceId}</p>
+		    	<p> Heap size: {this.state.device2.heap}</p>
+		    	<p> Wifi strength: {this.state.device2.wifistr}</p>
+		    	  	
+		    	<p> Sw1 state: {this.state.device2.sW1_state}</p>
+		    	<p> Sw2 state: {this.state.device2.sW2_state}</p>
+		    	<p> Sw3 state: {this.state.device2.sW3_state}</p>
+		    	<p> Uptime: {this.state.device2.uptime}</p>
+		    	<p> Restart reason: {this.state.device2.lastReason}</p>*/}
+		  </div>
+		  <button onClick={(e) => this.restartDevice(`http://mariusb.go.ro:1280/reset`,e)} class="btn btn-primary">Restart</button>
+		</div>
+	  </div>
+
+
+	</div>
+
+	
+
+		
+	
+	
+
+
+
+
+
+
+
+
+
+	</div>
+	)
+}
+}
+
+
+export default InformationList
