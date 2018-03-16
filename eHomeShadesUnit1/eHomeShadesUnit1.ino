@@ -16,11 +16,11 @@
 
 
 const char* hostName = "eHomeShadesUnit1";
-const char* ssid = "Yoyo";
+const char* ssid = "Yoyo_home";
 const char* password = "sccsa25g";
-const char* loggerHost     = "mariusb.go.ro";
+const char* loggerHost     = "192.168.1.3";
 const char* url      = "/api";
-char* serverMqtt = "mariusb.go.ro";
+char* serverMqtt = "192.168.1.3";
 
 const char* deviceId = "eHomeShadesUnit1";
 
@@ -188,7 +188,7 @@ void sendLog(String message){
   root.prettyPrintTo(JSONmessageBuffer, sizeof(JSONmessageBuffer));
   
   
-  http.begin("http://mariusb.go.ro:2000/api/log"); //Specify destination for HTTP request
+  http.begin("http://192.168.1.3:2000/api/log"); //Specify destination for HTTP request
   http.addHeader("Content-Type", "application/json"); //Specify content-type header
   //int httpResponseCode = http.POST("POSTING from ESP32"); //Send the actual POST request
   int httpResponseCode = http.POST(JSONmessageBuffer); //Send the actual POST request
@@ -217,7 +217,7 @@ void sendLog(String message){
 //reconnect on MQTT connection lost
 boolean reconnect() {
   
-  if (client.connect("eHSU1")) {
+  if (client.connect("eHomeShadeUnit1")) {
     // Once connected, publish an announcement...
     client.publish("log","reconnected; Hello");
     // ... and resubscribe
@@ -645,7 +645,7 @@ void setup(void){
 
     mySwitch.enableTransmit(REMOTE);
 
-reconnect();
+
 
     timer = timerBegin(0, 80, true); //timer 0, div 80
     timerAttachInterrupt(timer, &resetModule, true);
@@ -681,9 +681,9 @@ poll_connection();
 
 
     sw1_state=digitalRead(SW1);
-    Serial.println(sw1_state);
+    //Serial.println(sw1_state);
     sw2_state=digitalRead(SW2);
-    Serial.println(sw2_state);
+    //Serial.println(sw2_state);
    
       
       if (sw1_state==HIGH){
@@ -700,13 +700,13 @@ poll_connection();
     
     //try to reconnect from time to time
     
-//    if (now - lastReconnectAttempt > 30000) {
-//      lastReconnectAttempt = now;
-//      // Attempt to reconnect
-//      if (reconnect()) {
-//        lastReconnectAttempt = 0;
-//      }
-//    }
+    if (now - lastReconnectAttempt > 5000) {
+      lastReconnectAttempt = now;
+      // Attempt to reconnect
+      if (reconnect()) {
+        lastReconnectAttempt = 0;
+      }
+    }
   } else {
 
 
@@ -715,18 +715,18 @@ poll_connection();
     if (sw1_remote=="ON"){
 
        digitalWrite(MotUp,HIGH);
-       Serial.println("Jaluzea UP");
+       //Serial.println("Jaluzea UP");
     }else if (sw1_remote=="OFF"){
        digitalWrite(MotUp,LOW);
-       Serial.println("Jaluzea UP STOP");
+       //Serial.println("Jaluzea UP STOP");
     }
     if (sw2_remote=="ON"){
        digitalWrite(MotDown,HIGH);
-       Serial.println("Jaluzea Down");
+       //Serial.println("Jaluzea Down");
     }
      else if (sw2_remote=="OFF"){
        digitalWrite(MotDown,LOW);
-       Serial.println("Jaluzea Down STOP");
+       //Serial.println("Jaluzea Down STOP");
     }
 
 }  //end ! client connected else

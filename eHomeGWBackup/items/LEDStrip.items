@@ -1,0 +1,6 @@
+//LED Strip Control
+Group StripLedGroup "Kitchen LED Strips" (All)
+Color KitchenStrip1Color "Kitchen1 LED Strip" <colorpicker> (StripLed1Group)
+String KitchenStrip1String (StripLed1Group) {mqtt=">[eHomeBroker:RGBWStrip1Kitchen/colorValues:command:*:default]"}
+Color KitchenStrip2Color "Kitchen2 LED Strip" <colorpicker> (StripLed1Group)
+String KitchenStrip2String (StripLed1Group) {mqtt=">[eHomeBroker:RGBWStrip2Kitchen/colorValues:command:*:default]"}

@@ -1,0 +1,4 @@
+Switch eHomeShadesModuleGang1Sw1Remote {mqtt="<[eHomeBroker:eHomeShadesUnit1/sw1:state:default],>[eHomeBroker:eHomeShadesUnit1/sw1:command:ON:ON],>[eHomeBroker:eHomeShadesUnit1/sw1:command:OFF:OFF]"}
+Switch eHomeShadesModuleGang1Sw2Remote {mqtt="<[eHomeBroker:eHomeShadesUnit1/sw2:state:default],>[eHomeBroker:eHomeShadesUnit1/sw2:command:ON:ON],>[eHomeBroker:eHomeShadesUnit1/sw2:command:OFF:OFF]"}
+Switch eHomeShadesModuleGang1Sw3Remote {mqtt="<[eHomeBroker:eHomeShadesUnit1/sw3:state:default],>[eHomeBroker:eHomeShadesUnit1/sw3:command:ON:ON],>[eHomeBroker:eHomeShadesUnit1/sw3:command:OFF:OFF]"}
+

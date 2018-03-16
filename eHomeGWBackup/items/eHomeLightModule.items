@@ -1,0 +1,7 @@
+Switch eHomeLightModuleGang1Sw1Remote {mqtt="<[eHomeBroker:eHomeLightUnit1/sw1:state:default],>[eHomeBroker:eHomeLightUnit1/sw1:command:ON:ON],>[eHomeBroker:eHomeLightUnit1/sw1:command:OFF:OFF]"}
+Switch eHomeLightModuleGang1Sw2Remote {mqtt="<[eHomeBroker:eHomeLightUnit1/sw2:state:default],>[eHomeBroker:eHomeLightUnit1/sw2:command:ON:ON],>[eHomeBroker:eHomeLightUnit1/sw2:command:OFF:OFF]"}
+Switch eHomeLightModuleGang1Sw3Remote {mqtt="<[eHomeBroker:eHomeLightUnit1/sw3:state:default],>[eHomeBroker:eHomeLightUnit1/sw3:command:ON:ON],>[eHomeBroker:eHomeLightUnit1/sw3:command:OFF:OFF]"}
+Switch eHomeLightModule2Gang1Sw1Remote {mqtt="<[eHomeBroker:eHomeLightUnit2/sw1:state:default],>[eHomeBroker:eHomeLightUnit2/sw1:command:ON:ON],>[eHomeBroker:eHomeLightUnit2/sw1:command:OFF:OFF]"}
+Switch eHomeLightModule2Gang1Sw2Remote {mqtt="<[eHomeBroker:eHomeLightUnit2/sw2:state:default],>[eHomeBroker:eHomeLightUnit2/sw2:command:ON:ON],>[eHomeBroker:eHomeLightUnit2/sw2:command:OFF:OFF]"}
+Switch eHomeLightModule2Gang1Sw3Remote {mqtt="<[eHomeBroker:eHomeLightUnit2/sw3:state:default],>[eHomeBroker:eHomeLightUnit2/sw3:command:ON:ON],>[eHomeBroker:eHomeLightUnit2/sw3:command:OFF:OFF]"}
+

@@ -18,14 +18,14 @@
 const char* hostName = "eHomeLightUnit2";
 const char* ssid = "Yoyo_home";
 const char* password = "sccsa25g";
-const char* loggerHost     = "192.168.1.40";
+const char* loggerHost     = "192.168.1.3";
 const char* url      = "/api";
-char* serverMqtt = "192.168.1.40";
+char* serverMqtt = "192.168.1.3";
 
 const char* deviceId = "eHomeLightUnit2";
 
 // OTA HTTP Config
-String otaHost = "192.168.1.40"; // Host => bucket-name.s3.region.amazonaws.com
+String otaHost = "192.168.1.3"; // Host => bucket-name.s3.region.amazonaws.com
 int otaPort = 80; // Non https. For HTTPS 443. As of today, HTTPS doesn't work.
 String bin = "eHomeLightUnit2.ino.esp32.bin"; // bin file name with a slash in front.
 int contentLength = 0;
@@ -188,7 +188,7 @@ void sendLog(String message){
   root.prettyPrintTo(JSONmessageBuffer, sizeof(JSONmessageBuffer));
   
   
-  http.begin("http://192.168.1.40:8080/api/log"); //Specify destination for HTTP request
+  http.begin("http://192.168.1.3:2000/api/log"); //Specify destination for HTTP request
   http.addHeader("Content-Type", "application/json"); //Specify content-type header
   //int httpResponseCode = http.POST("POSTING from ESP32"); //Send the actual POST request
   int httpResponseCode = http.POST(JSONmessageBuffer); //Send the actual POST request

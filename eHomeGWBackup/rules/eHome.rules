@@ -1,0 +1,36 @@
+import org.openhab.core.library.types.*
+
+var HSBType hsbValue
+var String redValue
+var String greenValue
+var String blueValue
+
+rule "KitchenStrip1"
+when
+ Item KitchenStrip1Color changed
+then
+    hsbValue =KitchenStrip1Color.state as HSBType
+    redValue = hsbValue.red.intValue.toString
+    greenValue = hsbValue.green.intValue.toString
+    blueValue = hsbValue.blue.intValue.toString
+    var String RGBvalues
+    (RGBvalues= redValue.toString + ";" + greenValue.toString + ";" + blueValue.toString + ";")
+    sendCommand(KitchenStrip1String, RGBvalues)
+    logInfo("KitchenStrip1Color", RGBvalues )
+
+end
+
+rule "KitchenStrip2"
+when
+ Item KitchenStrip2Color changed
+then
+    hsbValue =KitchenStrip2Color.state as HSBType
+    redValue = hsbValue.red.intValue.toString
+    greenValue = hsbValue.green.intValue.toString
+    blueValue = hsbValue.blue.intValue.toString
+    var String RGBvalues
+    (RGBvalues= redValue.toString + ";" + greenValue.toString + ";" + blueValue.toString + ";")
+    sendCommand(KitchenStrip2String, RGBvalues)
+    logInfo("KitchenStrip2Color", RGBvalues )
+
+end
