@@ -13,20 +13,25 @@
 #include <WiFiUdp.h>  /used for NTP 
 #include <RCSwitch.h>
 #include <HTTPClient.h>
+#include "EEPROM.h"
 
+// the current address in the EEPROM (i.e. which byte
+// we're going to write to next)
+int addr = 0;
+#define EEPROM_SIZE 64
 
 const char* hostName = "eHomeLightUnit1";
 const char* ssid = "Yoyo_home";
 const char* password = "sccsa25g";
-const char* loggerHost     = "192.168.1.40";
+const char* loggerHost     = "192.168.1.3";
 const char* url      = "/api";
-char* serverMqtt = "192.168.1.40";
+char* serverMqtt = "192.168.1.3";
 
 const char* deviceId = "eHomeLightUnit1";
 
 
 // OTA HTTP Config
-String otaHost = "192.168.1.40"; // Host => bucket-name.s3.region.amazonaws.com
+String otaHost = "192.168.1.3"; // Host => bucket-name.s3.region.amazonaws.com
 int otaPort = 80; // Non https. For HTTPS 443. As of today, HTTPS doesn't work.
 String bin = "eHomeLightUnit1.ino.esp32.bin"; // bin file name with a slash in front.
 int contentLength = 0;
@@ -41,6 +46,10 @@ const char* deviceScope = "Kitchen lights";
 String getHeaderValue(String header, String headerName) {
   return header.substring(strlen(headerName.c_str()));
 }
+
+//used for alert mechanism
+bool alert_sent=false; bool sw1_ON_status =false;  
+int onTime=0;int alertTime;
 
 
 
@@ -136,6 +145,37 @@ void IRAM_ATTR resetModule(){
     esp_restart();
 }
 
+void EEPROMWritelong(int address, long value)
+      {
+      //Decomposition from a long to 4 bytes by using bitshift.
+      //One = Most significant -> Four = Least significant byte
+      byte four = (value & 0xFF);
+      byte three = ((value >> 8) & 0xFF);
+      byte two = ((value >> 16) & 0xFF);
+      byte one = ((value >> 24) & 0xFF);
+
+      //Write the 4 bytes into the eeprom memory.
+      EEPROM.write(address, four);
+      EEPROM.write(address + 1, three);
+      EEPROM.write(address + 2, two);
+      EEPROM.write(address + 3, one);
+
+      EEPROM.commit();
+      
+      }
+long EEPROMReadlong(long address)
+      {
+      //Read the 4 bytes from the eeprom memory.
+      long four = EEPROM.read(address);
+      long three = EEPROM.read(address + 1);
+      long two = EEPROM.read(address + 2);
+      long one = EEPROM.read(address + 3);
+
+      //Return the recomposed long by using bitshift.
+      return ((four << 0) & 0xFF) + ((three << 8) & 0xFFFF) + ((two << 16) & 0xFFFFFF) + ((one << 24) & 0xFFFFFFFF);
+      }
+
+
 String reset_reason;
 
 void print_reset_reason(RESET_REASON reason)
@@ -188,7 +228,7 @@ void sendLog(String message){
   root.prettyPrintTo(JSONmessageBuffer, sizeof(JSONmessageBuffer));
   
   
-  http.begin("http://192.168.1.40:8080/api/log"); //Specify destination for HTTP request
+  http.begin("http://192.168.1.3:2000/api/log"); //Specify destination for HTTP request
   http.addHeader("Content-Type", "application/json"); //Specify content-type header
   //int httpResponseCode = http.POST("POSTING from ESP32"); //Send the actual POST request
   int httpResponseCode = http.POST(JSONmessageBuffer); //Send the actual POST request
@@ -512,6 +552,8 @@ void setup(void){
   Serial.begin(115200);
 
 
+  EEPROM.begin(EEPROM_SIZE);//init eeprom
+
   
   pinMode(SW1, INPUT_PULLDOWN);
   pinMode(SW2, INPUT_PULLDOWN);
@@ -573,6 +615,26 @@ void setup(void){
     server.send(200, "text/plain","ok");
     //delay(2000);
     updateFW();
+  });
+
+  server.on("/settings",[](){
+    server.sendHeader("Connection", "close");
+    server.send(200, "text/plain","ok");
+    //delay(2000);
+    
+    int val;
+    String argument = server.arg("alertTime");
+    if (argument.length() != 0) alertTime = argument.toInt();
+    
+    EEPROMWritelong(addr, alertTime);
+    
+    Serial.print("alertTime: ");
+    Serial.println(EEPROMReadlong(addr));
+    
+    //sendLog(alertTime.toString());
+    sendLog("alertTime changed");
+  
+    
   });
 
   
@@ -676,6 +738,7 @@ void setup(void){
 void loop(void){
   server.handleClient();
   
+long now = millis();
 
 poll_connection();
 
@@ -694,7 +757,7 @@ poll_connection();
     sendLog("MQTT not connected. Working in local mode");
 
     
-    long now = millis();
+    
 
     ///work it locally
 
@@ -741,11 +804,34 @@ poll_connection();
     client.loop();
 
 
-
  
 
 ///////SW1
 
+
+  //check if the start switch time is higher than the specified interval and that no alert has been sent 
+  // and send the message
+  if (sw1_ON_status==true){
+   
+  
+    if (now - onTime >= EEPROMReadlong(addr)) { //default on 10 min
+
+     onTime = now;
+      Serial.println(onTime);
+        if (alert_sent==false){
+            client.publish("eHomeLightUnit1/sw1/alert","Alert timeout occured");
+            alert_sent=true;
+            Serial.println(EEPROMReadlong(addr));
+            Serial.println("Alert sent");
+           
+        }
+     
+     //Serial.println(alert_sent);
+     //Serial.println(onTime);
+     alert_sent=false;
+    }
+   
+  }
 
   if (sw1_state==HIGH && sw1_state!=sw1PreviousState){
        Serial.println("SW1 High");
@@ -755,6 +841,11 @@ poll_connection();
     
     
     sw1PreviousState=HIGH;
+
+    //alert variables
+    sw1_ON_status=true;
+    onTime = now;
+    
    
   }
 
@@ -766,6 +857,9 @@ poll_connection();
        
     
     sw1PreviousState=LOW;
+
+    //alert variables
+    sw1_ON_status=false;
     
   }
 
@@ -780,6 +874,10 @@ if (set_sw1==false){   //if a new remote message arrived
       Serial.println("sw1off remote");
       set_sw1=true;
        client.publish("eHomeLightUnits/log","eHomeLightUnit1 SW1 remote control");
+       
+       //alert variables
+       sw1_ON_status=false;
+    
   
   }
     if (sw1_remote=="ON"){
@@ -787,8 +885,12 @@ if (set_sw1==false){   //if a new remote message arrived
       digitalWrite(LAMP1,LOW);
       Serial.println("sw1on remote");
       set_sw1=true;
-       client.publish("eHomeLightUnits/log","eHomeLightUnit1 SW1 remote control");
- 
+      client.publish("eHomeLightUnits/log","eHomeLightUnit1 SW1 remote control");
+      
+      //alert variables
+      sw1_ON_status=true;
+      onTime = now;
+    
   }
  
 

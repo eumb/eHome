@@ -1,4 +1,3 @@
-#include <RCSwitch.h>
 #include <NTPClient.h>  https://github.com/arduino-libraries/NTPClient
 #include <WiFiUdp.h>  //used for NTP 
 #include <ESP8266WiFi.h>
@@ -69,7 +68,7 @@ int strip2WhiteLedVal;
 const char* host = "RGBWStripKitchen";
 const char* ssid     = "Yoyo_home";
 const char* password = "sccsa25g";
-char* serverMqtt = "192.168.1.40";
+char* serverMqtt = "192.168.1.3";
 const char* binFile="eHomeRGBWStrip1.ino.d1_mini.bin";
 const char* url      = "/api";
 const char* deviceId = "RGBWStripKitchen";
@@ -120,7 +119,7 @@ void ISRwatchdog(){
 void updateFW(){
   sendLog("Updating....");
   ESPhttpUpdate.rebootOnUpdate(true);
-  t_httpUpdate_return ret=ESPhttpUpdate.update("192.168.1.40", 80, "/RGBWStripKitchen.bin");
+  t_httpUpdate_return ret=ESPhttpUpdate.update("192.168.1.3", 80, "/RGBWStripKitchen.bin");
   Serial.print("ret ");Serial.println(ret);
 
 
@@ -171,7 +170,7 @@ void sendLog(String message){
   root.prettyPrintTo(JSONmessageBuffer, sizeof(JSONmessageBuffer));
   
   
-  http.begin("http://192.168.1.40:8080/api/log"); //Specify destination for HTTP request
+  http.begin("http://192.168.1.3:2000/api/log"); //Specify destination for HTTP request
   http.addHeader("Content-Type", "application/json"); //Specify content-type header
   int httpResponseCode = http.POST(JSONmessageBuffer); //Send the actual POST request
   
