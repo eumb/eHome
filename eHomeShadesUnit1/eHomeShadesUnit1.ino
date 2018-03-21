@@ -16,17 +16,17 @@
 
 
 const char* hostName = "eHomeShadesUnit1";
-const char* ssid = "Yoyo_home";
-const char* password = "sccsa25g";
-const char* loggerHost     = "192.168.1.3";
+const char* ssid = "eHome";
+const char* password = "allI0Td3v1c3s!";
+const char* loggerHost     = "192.168.2.3";
 const char* url      = "/api";
-char* serverMqtt = "192.168.1.3";
+char* serverMqtt = "192.168.2.3";
 
 const char* deviceId = "eHomeShadesUnit1";
 
 
 // OTA HTTP Config
-String otaHost = "192.168.1.3"; // Host => bucket-name.s3.region.amazonaws.com
+String otaHost = "192.168.2.3"; // Host => bucket-name.s3.region.amazonaws.com
 int otaPort = 80; // Non https. For HTTPS 443. As of today, HTTPS doesn't work.
 String bin = "eHomeShadesUnit1.ino.esp32.bin"; // bin file name with a slash in front.
 int contentLength = 0;
@@ -188,7 +188,7 @@ void sendLog(String message){
   root.prettyPrintTo(JSONmessageBuffer, sizeof(JSONmessageBuffer));
   
   
-  http.begin("http://192.168.1.3:2000/api/log"); //Specify destination for HTTP request
+  http.begin("http://192.168.2.3:2000/api/log"); //Specify destination for HTTP request
   http.addHeader("Content-Type", "application/json"); //Specify content-type header
   //int httpResponseCode = http.POST("POSTING from ESP32"); //Send the actual POST request
   int httpResponseCode = http.POST(JSONmessageBuffer); //Send the actual POST request
@@ -196,6 +196,8 @@ void sendLog(String message){
   if(httpResponseCode>0){
    
       String response = http.getString();  //Get the response to the request
+
+
    
       Serial.println(httpResponseCode);   //Print return code
       Serial.println(response);           //Print request answer
@@ -650,7 +652,7 @@ void setup(void){
     timer = timerBegin(0, 80, true); //timer 0, div 80
     timerAttachInterrupt(timer, &resetModule, true);
     timerAlarmWrite(timer, 6000000, false); //set time in us
-    // timerAlarmEnable(timer); //enable interrupt
+    //timerAlarmEnable(timer); //enable interrupt
 }
 
 void loop(void){
@@ -671,7 +673,7 @@ poll_connection();
 
     
    if (!client.connected()) {
-    //sendLog("MQTT not connected. Working in local mode");
+    
 
     
     long now = millis();
@@ -700,7 +702,8 @@ poll_connection();
     
     //try to reconnect from time to time
     
-    if (now - lastReconnectAttempt > 5000) {
+    if (now - lastReconnectAttempt > 30000) {
+      sendLog("MQTT not connected. Working in local mode");
       lastReconnectAttempt = now;
       // Attempt to reconnect
       if (reconnect()) {
