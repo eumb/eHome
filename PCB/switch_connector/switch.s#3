@@ -405,8 +405,10 @@ drill 1.0 mm</description>
 <net name="N$1" class="0">
 <segment>
 <pinref part="SV1" gate="1" pin="5"/>
-<wire x1="55.88" y1="66.04" x2="38.1" y2="66.04" width="0.1524" layer="91"/>
-<wire x1="38.1" y1="66.04" x2="38.1" y2="12.7" width="0.1524" layer="91"/>
+<wire x1="55.88" y1="66.04" x2="35.56" y2="66.04" width="0.1524" layer="91"/>
+<wire x1="35.56" y1="66.04" x2="35.56" y2="12.7" width="0.1524" layer="91"/>
+<pinref part="REL1" gate="G$1" pin="1"/>
+<wire x1="35.56" y1="12.7" x2="38.1" y2="12.7" width="0.1524" layer="91"/>
 </segment>
 </net>
 <net name="N$2" class="0">
@@ -414,9 +416,9 @@ drill 1.0 mm</description>
 <pinref part="SV1" gate="1" pin="3"/>
 <wire x1="58.42" y1="66.04" x2="58.42" y2="68.58" width="0.1524" layer="91"/>
 <wire x1="58.42" y1="68.58" x2="45.72" y2="68.58" width="0.1524" layer="91"/>
-<wire x1="45.72" y1="68.58" x2="45.72" y2="20.32" width="0.1524" layer="91"/>
-<wire x1="45.72" y1="20.32" x2="50.8" y2="20.32" width="0.1524" layer="91"/>
-<wire x1="50.8" y1="20.32" x2="50.8" y2="12.7" width="0.1524" layer="91"/>
+<wire x1="45.72" y1="68.58" x2="45.72" y2="12.7" width="0.1524" layer="91"/>
+<pinref part="REL2" gate="G$1" pin="1"/>
+<wire x1="45.72" y1="12.7" x2="50.8" y2="12.7" width="0.1524" layer="91"/>
 </segment>
 </net>
 <net name="N$3" class="0">
@@ -425,8 +427,10 @@ drill 1.0 mm</description>
 <wire x1="60.96" y1="66.04" x2="60.96" y2="71.12" width="0.1524" layer="91"/>
 <wire x1="60.96" y1="71.12" x2="48.26" y2="71.12" width="0.1524" layer="91"/>
 <wire x1="48.26" y1="71.12" x2="48.26" y2="25.4" width="0.1524" layer="91"/>
-<wire x1="48.26" y1="25.4" x2="63.5" y2="25.4" width="0.1524" layer="91"/>
-<wire x1="63.5" y1="25.4" x2="63.5" y2="12.7" width="0.1524" layer="91"/>
+<wire x1="48.26" y1="25.4" x2="58.42" y2="25.4" width="0.1524" layer="91"/>
+<wire x1="58.42" y1="25.4" x2="58.42" y2="12.7" width="0.1524" layer="91"/>
+<pinref part="REL3" gate="G$1" pin="1"/>
+<wire x1="58.42" y1="12.7" x2="63.5" y2="12.7" width="0.1524" layer="91"/>
 </segment>
 </net>
 <net name="VCC" class="0">
@@ -452,9 +456,13 @@ drill 1.0 mm</description>
 </net>
 <net name="N$7" class="0">
 <segment>
-<wire x1="76.2" y1="27.94" x2="76.2" y2="12.7" width="0.1524" layer="91"/>
-<wire x1="76.2" y1="27.94" x2="30.48" y2="27.94" width="0.1524" layer="91"/>
-<wire x1="30.48" y1="27.94" x2="30.48" y2="43.18" width="0.1524" layer="91"/>
+<wire x1="73.66" y1="27.94" x2="73.66" y2="12.7" width="0.1524" layer="91"/>
+<wire x1="73.66" y1="27.94" x2="27.94" y2="27.94" width="0.1524" layer="91"/>
+<wire x1="27.94" y1="27.94" x2="27.94" y2="43.18" width="0.1524" layer="91"/>
+<pinref part="REMOTE" gate="G$1" pin="1"/>
+<wire x1="73.66" y1="12.7" x2="76.2" y2="12.7" width="0.1524" layer="91"/>
+<pinref part="RF" gate="G$1" pin="1"/>
+<wire x1="27.94" y1="43.18" x2="30.48" y2="43.18" width="0.1524" layer="91"/>
 </segment>
 </net>
 </nets>
