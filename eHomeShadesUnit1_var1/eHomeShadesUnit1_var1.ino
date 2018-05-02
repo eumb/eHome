@@ -163,6 +163,9 @@ void print_reset_reason(RESET_REASON reason)
 
 
 
+
+
+
 ////////////////////////  Log ////////////////////////////////////////////
 
 
@@ -331,6 +334,60 @@ void callback(char* topic, byte* payload, unsigned int length) {
 
 /////////////////////////////////////////////////////////
 
+
+
+
+void SwitchTreatment(){
+
+  ////////////////////LOCAL command//////////////////////////
+    
+  if ( (sw1_state==HIGH && sw1_state!=sw1PreviousState)  ){ // 
+       Serial.println("MOT HIGH from sw 1");
+       digitalWrite(MotUp,HIGH);
+       //Serial.println("Jaluzea UP");
+    
+    
+
+    sw1PreviousState=HIGH;
+
+   }
+   if ( (sw1_state==LOW && sw1_state!=sw1PreviousState)  ){ // 
+       Serial.println("MOT HIGH from sw 1");
+       digitalWrite(MotUp,LOW);
+       //Serial.println("Jaluzea UP");
+    
+    
+
+    sw1PreviousState=LOW;
+
+   }
+
+
+ if ( (sw3_state==HIGH && sw3_state!=sw3PreviousState) ){   //
+     Serial.println("MOT HIGH from sw3");
+     digitalWrite(MotDown,HIGH);
+     
+    sw3PreviousState=HIGH; 
+
+
+    
+  }
+   if ( (sw3_state==LOW && sw3_state!=sw3PreviousState) ){   //
+     Serial.println("MOT HIGH from sw3");
+     digitalWrite(MotDown,LOW);
+     
+    sw3PreviousState=LOW; 
+
+
+    
+  }
+}
+
+
+
+
+
+
 void updateFW() {
   
   
@@ -495,9 +552,9 @@ void setup(void){
 
 
   
-  pinMode(SW1, INPUT);
-  pinMode(SW2, INPUT);
-  pinMode(SW3, INPUT);
+  pinMode(SW1, INPUT_PULLDOWN);
+  pinMode(SW2, INPUT_PULLDOWN);
+  pinMode(SW3, INPUT_PULLDOWN);
 
 
   pinMode(REMOTE, OUTPUT  );
@@ -668,6 +725,11 @@ poll_connection();
   sw1_state=digitalRead(SW1);
   sw2_state=digitalRead(SW2);
   sw3_state=digitalRead(SW3);
+
+//
+//  Serial.print("SW1: ");Serial.println(sw1_state);
+//  Serial.print("SW2: ");Serial.println(sw2_state);
+//  Serial.print("SW3: ");Serial.println(sw3_state);
   
   timerWrite(timer, 0); //reset timer (feed watchdog)
 
@@ -682,27 +744,53 @@ poll_connection();
     
 
 
-    sw1_state=digitalRead(SW1);
-    //Serial.println(sw1_state);
-    sw2_state=digitalRead(SW2);
-    //Serial.println(sw2_state);
-   
-      
-      if (sw1_state==HIGH){
-        digitalWrite(MotUp,HIGH);
-      }else{
-         digitalWrite(MotUp,LOW);
-      }
-        if (sw2_state==LOW){
-        digitalWrite(MotDown,LOW);
-      }else{
-         digitalWrite(MotDown,HIGH);
-      }
+ ////////////////////LOCAL command//////////////////////////
+    
+  if ( (sw1_state==HIGH && sw1_state!=sw1PreviousState)  ){ // 
+       Serial.println("MOT HIGH from sw 1");
+       digitalWrite(MotUp,HIGH);
+       //Serial.println("Jaluzea UP");
+    
+    
+
+    sw1PreviousState=HIGH;
+
+   }
+   if ( (sw1_state==LOW && sw1_state!=sw1PreviousState)  ){ // 
+       Serial.println("MOT HIGH from sw 1");
+       digitalWrite(MotUp,LOW);
+       //Serial.println("Jaluzea UP");
+    
+    
+
+    sw1PreviousState=LOW;
+
+   }
+
+
+ if ( (sw3_state==HIGH && sw3_state!=sw3PreviousState) ){   //
+     Serial.println("MOT HIGH from sw3");
+     digitalWrite(MotDown,HIGH);
+     
+    sw3PreviousState=HIGH; 
+
+
+    
+  }
+   if ( (sw3_state==LOW && sw3_state!=sw3PreviousState) ){   //
+     Serial.println("MOT HIGH from sw3");
+     digitalWrite(MotDown,LOW);
+     
+    sw3PreviousState=LOW; 
+
+
+    
+  }
     
     
     //try to reconnect from time to time
     
-    if (now - lastReconnectAttempt > 30000) {
+    if (now - lastReconnectAttempt > 10000) {
       sendLog("MQTT not connected. Working in local mode");
       lastReconnectAttempt = now;
       // Attempt to reconnect
@@ -715,6 +803,9 @@ poll_connection();
 
     client.loop();
 
+
+
+/////////////////REMOTE command//////////////////////
     if (sw1_remote=="ON"){
 
        digitalWrite(MotUp,HIGH);
@@ -731,6 +822,51 @@ poll_connection();
        digitalWrite(MotDown,LOW);
        //Serial.println("Jaluzea Down STOP");
     }
+
+////////////////////LOCAL command//////////////////////////
+    
+  if ( (sw1_state==HIGH && sw1_state!=sw1PreviousState)  ){ // 
+       Serial.println("MOT HIGH from sw 1");
+       digitalWrite(MotUp,HIGH);
+       //Serial.println("Jaluzea UP");
+    
+    
+
+    sw1PreviousState=HIGH;
+
+   }
+   if ( (sw1_state==LOW && sw1_state!=sw1PreviousState)  ){ // 
+       Serial.println("MOT HIGH from sw 1");
+       digitalWrite(MotUp,LOW);
+       //Serial.println("Jaluzea UP");
+    
+    
+
+    sw1PreviousState=LOW;
+
+   }
+
+
+ if ( (sw3_state==HIGH && sw3_state!=sw3PreviousState) ){   //
+     Serial.println("MOT HIGH from sw3");
+     digitalWrite(MotDown,HIGH);
+     
+    sw3PreviousState=HIGH; 
+
+
+    
+  }
+   if ( (sw3_state==LOW && sw3_state!=sw3PreviousState) ){   //
+     Serial.println("MOT HIGH from sw3");
+     digitalWrite(MotDown,LOW);
+     
+    sw3PreviousState=LOW; 
+
+
+    
+  }
+
+    
 
 }  //end ! client connected else
 

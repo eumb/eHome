@@ -7,7 +7,7 @@
 #include <Ticker.h>
 #include "ArduinoJson.h"
 #include <ESP8266WebServer.h>
-#include <ESP8266mDNS.h>
+#include <ESP8266mDNS.h>    
 
 #define Strip1RedPin D1
 #define Strip1GreenPin D2
@@ -381,7 +381,9 @@ void setup() {
   pinMode(Strip2BluePin, OUTPUT);
   pinMode(Strip2WhitePin, OUTPUT);
   
-
+  digitalWrite(Strip2WhitePin,LOW);
+  digitalWrite(Strip1WhitePin,LOW);
+  
  // We start by connecting to a WiFi network
 
     Serial.println();

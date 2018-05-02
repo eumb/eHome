@@ -98,9 +98,10 @@ const char* serverIndex = "<script src='https://ajax.googleapis.com/ajax/libs/jq
 
 
 
-#define MotUp 16
-#define MotDown 17
-
+#define Rel1Up 16
+#define Rel1Down  17
+#define Rel2Up 18
+#define Rel2Down  19
 
 
 #define REMOTE 25  //switches remote connection
@@ -160,6 +161,9 @@ void print_reset_reason(RESET_REASON reason)
     default : reset_reason=="NO_MEAN";
   }
 }
+
+
+
 
 
 
@@ -331,6 +335,19 @@ void callback(char* topic, byte* payload, unsigned int length) {
 
 /////////////////////////////////////////////////////////
 
+
+
+
+void SwitchTreatment(){
+
+
+}
+
+
+
+
+
+
 void updateFW() {
   
   
@@ -495,18 +512,23 @@ void setup(void){
 
 
   
-  pinMode(SW1, INPUT);
-  pinMode(SW2, INPUT);
-  pinMode(SW3, INPUT);
+  pinMode(SW1, INPUT_PULLDOWN);
+  pinMode(SW2, INPUT_PULLDOWN);
+  pinMode(SW3, INPUT_PULLDOWN);
 
 
-  pinMode(REMOTE, OUTPUT  );
-  pinMode(MotUp, OUTPUT);
-  pinMode(MotDown, OUTPUT);
- 
+  pinMode(REMOTE, OUTPUT);
 
-  digitalWrite(MotUp,LOW);
-  digitalWrite(MotDown,LOW);
+  
+  pinMode(Rel1Up, OUTPUT);
+  pinMode(Rel1Down, OUTPUT);
+  pinMode(Rel2Up, OUTPUT);
+  pinMode(Rel2Down, OUTPUT);
+
+  digitalWrite(Rel1Up,LOW);
+  digitalWrite(Rel2Up,LOW);
+  digitalWrite(Rel1Down,LOW);
+  digitalWrite(Rel2Down,LOW);
 
 
   
@@ -663,11 +685,137 @@ poll_connection();
 
  if (WiFi.isConnected()) 
   {
-//do something
 
+  
+  
+  
+  
+  
+  
+  
+  ////////////////////LOCAL command//////////////////////////
+    
   sw1_state=digitalRead(SW1);
   sw2_state=digitalRead(SW2);
   sw3_state=digitalRead(SW3);
+  
+  
+  if(sw2_state==HIGH){
+
+        if ( (sw1_state==HIGH && sw1_state!=sw1PreviousState)  ){ // 
+           Serial.println("Jaluzea 1 UP");
+           digitalWrite(Rel1Up,HIGH);
+         
+        sw1PreviousState=HIGH;
+    
+       }
+       if ( (sw1_state==LOW && sw1_state!=sw1PreviousState)  ){ // 
+           Serial.println("Jaluzea 1 up stop");
+           digitalWrite(Rel1Up,LOW);
+     
+        sw1PreviousState=LOW;
+    
+       }
+    
+    
+      if ( (sw3_state==HIGH && sw3_state!=sw3PreviousState) ){   //
+         Serial.println("Jaluzea 1 Down");
+         digitalWrite(Rel1Down,HIGH);
+         
+        sw3PreviousState=HIGH; 
+    
+    
+        
+      }
+       if ( (sw3_state==LOW && sw3_state!=sw3PreviousState) ){   //
+         Serial.println("Jaluzea 1 down stop");
+         digitalWrite(Rel1Down,LOW);
+         
+        sw3PreviousState=LOW; 
+    
+    
+        
+      }
+    
+       if ( sw3_state==HIGH && sw1_state==HIGH){
+
+        mySwitch.send("000000000000000000001010");
+        mySwitch.send("000000000000000000000110");
+        mySwitch.send("000000000000000000001110");
+        digitalWrite(Rel1Down,LOW);
+        digitalWrite(Rel1Up,LOW);
+
+        
+       }
+      
+    
+  }
+
+
+  if(sw2_state==LOW){
+
+       if ( (sw1_state==HIGH && sw1_state!=sw1PreviousState)  ){ // 
+           Serial.println("Jaluzea 2 UP");
+           digitalWrite(Rel2Up,HIGH);
+        
+        sw1PreviousState=HIGH;
+    
+       }
+       if ( (sw1_state==LOW && sw1_state!=sw1PreviousState)  ){ // 
+           Serial.println("Jaluzea 2 up stop");
+           digitalWrite(Rel2Up,LOW);
+       
+        sw1PreviousState=LOW;
+    
+       }
+    
+    
+     if ( (sw3_state==HIGH && sw3_state!=sw3PreviousState) ){   //
+         Serial.println("Jaluzea 2 Down");
+         digitalWrite(Rel2Down,HIGH);
+         
+        sw3PreviousState=HIGH; 
+    
+    
+      }
+       if ( (sw3_state==LOW && sw3_state!=sw3PreviousState) ){   //
+         Serial.println("Jaluzea 2 down stop");
+         digitalWrite(Rel2Down,LOW);
+         
+        sw3PreviousState=LOW; 
+    
+    
+        
+      }
+
+      if ( sw3_state==HIGH && sw1_state==HIGH){
+
+//        mySwitch.send("000000000000000000001010");
+//        mySwitch.send("000000000000000000000110");
+//        mySwitch.send("000000000000000000001110");
+
+        mySwitch.send("000000000000000000000111");
+        mySwitch.send("000000000000000000001111"); 
+        mySwitch.send("000000000000000000001011");
+        
+        digitalWrite(Rel2Down,LOW);
+        digitalWrite(Rel2Up,LOW);
+
+        
+       }
+    
+  }
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
   
   timerWrite(timer, 0); //reset timer (feed watchdog)
 
@@ -678,31 +826,18 @@ poll_connection();
     
     long now = millis();
 
-    ///work it locally
+    ///work it locally without MQTT client connected
     
 
 
-    sw1_state=digitalRead(SW1);
-    //Serial.println(sw1_state);
-    sw2_state=digitalRead(SW2);
-    //Serial.println(sw2_state);
-   
-      
-      if (sw1_state==HIGH){
-        digitalWrite(MotUp,HIGH);
-      }else{
-         digitalWrite(MotUp,LOW);
-      }
-        if (sw2_state==LOW){
-        digitalWrite(MotDown,LOW);
-      }else{
-         digitalWrite(MotDown,HIGH);
-      }
+ 
+  
+  
     
     
     //try to reconnect from time to time
     
-    if (now - lastReconnectAttempt > 30000) {
+    if (now - lastReconnectAttempt > 10000) {
       sendLog("MQTT not connected. Working in local mode");
       lastReconnectAttempt = now;
       // Attempt to reconnect
@@ -715,23 +850,33 @@ poll_connection();
 
     client.loop();
 
-    if (sw1_remote=="ON"){
 
-       digitalWrite(MotUp,HIGH);
-       //Serial.println("Jaluzea UP");
-    }else if (sw1_remote=="OFF"){
-       digitalWrite(MotUp,LOW);
-       //Serial.println("Jaluzea UP STOP");
-    }
-    if (sw2_remote=="ON"){
-       digitalWrite(MotDown,HIGH);
-       //Serial.println("Jaluzea Down");
-    }
-     else if (sw2_remote=="OFF"){
-       digitalWrite(MotDown,LOW);
-       //Serial.println("Jaluzea Down STOP");
-    }
+//TODO for MQTT client connected
 
+
+
+/////////////////REMOTE command//////////////////////
+//    if (sw1_remote=="ON"){
+//
+//       digitalWrite(MotUp,HIGH);
+//       //Serial.println("Jaluzea UP");
+//    }else if (sw1_remote=="OFF"){
+//       digitalWrite(MotUp,LOW);
+//       //Serial.println("Jaluzea UP STOP");
+//    }
+//    if (sw2_remote=="ON"){
+//       digitalWrite(MotDown,HIGH);
+//       //Serial.println("Jaluzea Down");
+//    }
+//     else if (sw2_remote=="OFF"){
+//       digitalWrite(MotDown,LOW);
+//       //Serial.println("Jaluzea Down STOP");
+//    }
+
+////////////////////LOCAL command//////////////////////////
+  
+
+    
 }  //end ! client connected else
 
 }//end wifi connected
@@ -741,23 +886,8 @@ poll_connection();
     timerWrite(timer, 0); //reset timer (feed watchdog)
 
      
-    //work it without wifi
+    // TODO work it without wifi
 
-    sw1_state=digitalRead(SW1);
-    sw2_state=digitalRead(SW2);
-
-   
-      
-      if (sw1_state==HIGH){
-        digitalWrite(MotUp,HIGH);
-      }else{
-         digitalWrite(MotUp,LOW);
-      }
-        if (sw2_state==LOW){
-        digitalWrite(MotDown,LOW);
-      }else{
-         digitalWrite(MotDown,HIGH);
-      }
     
    
   }
