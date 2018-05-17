@@ -124,9 +124,9 @@ const char* serverIndex = "<script src='https://ajax.googleapis.com/ajax/libs/jq
 #define SW2_1 35  //poz 7 
 
 //hol
-#define SW3 32  //poz 6
-#define SW3_1 33  //poz 9
-#define SW3_2 25  //poz 1
+#define SW3 19  //poz 6
+#define SW3_1 18  //poz 9
+#define SW3_2 17  //poz 1
 
 //terasa
 #define SW4 23  //poz 7 

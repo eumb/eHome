@@ -66,9 +66,14 @@ int strip2WhiteLedVal;
 
 
 const char* host = "RGBWStripKitchen";
-const char* ssid     = "eHome";
-const char* password = "allI0Td3v1c3s!";
-char* serverMqtt = "192.168.2.3";
+
+//const char* ssid     = "eHome";
+//const char* password = "allI0Td3v1c3s!";
+
+const char* ssid     = "Yoyo_home";
+const char* password = "sccsa25g";
+
+char* serverMqtt = "192.168.1.40";
 const char* binFile="eHomeRGBWStrip1.ino.d1_mini.bin";
 const char* url      = "/api";
 const char* deviceId = "RGBWStripKitchen";
@@ -112,14 +117,14 @@ void ISRwatchdog(){
   if(watchdogCount == 50){
     Serial.println("watchdog bites");
     sendLog("WatchDog triggered. Going to reset");
-    ESP.reset();
+    ESP.restart();
   }
 }
 
 void updateFW(){
   sendLog("Updating....");
   ESPhttpUpdate.rebootOnUpdate(true);
-  t_httpUpdate_return ret=ESPhttpUpdate.update("192.168.2.3", 80, "/RGBWStripKitchen.bin");
+  t_httpUpdate_return ret=ESPhttpUpdate.update("192.168.1.40", 80, "/RGBWStripKitchen.bin");
   Serial.print("ret ");Serial.println(ret);
 
 
@@ -170,7 +175,7 @@ void sendLog(String message){
   root.prettyPrintTo(JSONmessageBuffer, sizeof(JSONmessageBuffer));
   
   
-  http.begin("http://192.168.2.3:2000/api/log"); //Specify destination for HTTP request
+  http.begin("http://192.168.1.40:2000/api/log"); //Specify destination for HTTP request
   http.addHeader("Content-Type", "application/json"); //Specify content-type header
   int httpResponseCode = http.POST(JSONmessageBuffer); //Send the actual POST request
   
@@ -381,9 +386,9 @@ void setup() {
   pinMode(Strip2BluePin, OUTPUT);
   pinMode(Strip2WhitePin, OUTPUT);
   
-  digitalWrite(Strip2WhitePin,LOW);
+  //digitalWrite(Strip2WhitePin,HIGH);
   digitalWrite(Strip1WhitePin,LOW);
-  
+ 
  // We start by connecting to a WiFi network
 
     Serial.println();
@@ -408,6 +413,7 @@ void setup() {
 //web server
   
   server.on("/", HTTP_GET, [](){
+      Serial.println("Root web server called");
       server.sendHeader("Connection", "close");
       server.send(200, "text/html", serverIndex);
     });
@@ -505,9 +511,12 @@ void setup() {
       yield();
     });
 
-  MDNS.addService("http", "tcp", 80);
+  //MDNS.addService("http", "tcp", 80);
 
     Serial.printf("Ready! Open http://%s.local in your browser\n", host);  
+
+
+    
   server.begin();
 
   timeClient.begin();
@@ -523,6 +532,8 @@ void setup() {
 }
 
 void loop() {
+
+  
  server.handleClient();
   
  
@@ -554,6 +565,7 @@ void loop() {
 
     client.loop();
     watchdogCount = 0;
+    //ESP.wdtFeed();
 
 
 
