@@ -1,3 +1,4 @@
+//14.06
 #include <WiFi.h>
 #include <WiFiClient.h>
 #include <ESP32WebServer.h> //https://github.com/nhatuan84/esp32-webserver
@@ -23,28 +24,17 @@ int addr = 0;
 
 const char* hostName = "eHomeLightUnit3";
 
-//const char* ssid = "eHome";
-//const char* password = "allI0Td3v1c3s!";
-//const char* loggerHost     = "192.168.2.3";
-//const char* url      = "/api";
-//char* serverMqtt = "192.168.2.3";
-
-
-
-
-const char* ssid = "Yoyo_home";
-const char* password = "sccsa25g";
-const char* loggerHost     = "192.168.1.40";
+const char* ssid = "eHome";
+const char* password = "allI0Td3v1c3s!";
+const char* loggerHost     = "192.168.2.10";
 const char* url      = "/api";
-char* serverMqtt = "192.168.1.40";
-
-
+char* serverMqtt = "192.168.2.10";
 
 
 
 
 // OTA HTTP Config
-String otaHost = "192.168.2.3"; // Host => bucket-name.s3.region.amazonaws.com
+String otaHost = "192.168.2.10"; // Host => bucket-name.s3.region.amazonaws.com
 int otaPort = 80; // Non https. For HTTPS 443. As of today, HTTPS doesn't work.
 String bin = "eHomeLightUnit3.ino.esp32.bin"; // bin file name with a slash in front.
 int contentLength = 0;
@@ -55,7 +45,7 @@ const char* deviceId = "eHomeLightUnit3";
 const char* eHomeFwVer = "1.0";
 const char* deviceType = "Light";
 const char* deviceLocation = "Ground floor";
-const char* deviceScope = "Kitchen lights";
+const char* deviceScope = "Utility lights";
 
 // Utility to extract header value from headers
 String getHeaderValue(String header, String headerName) {
@@ -65,6 +55,7 @@ String getHeaderValue(String header, String headerName) {
 //used for alert mechanism
 bool alert_sent=false , rel1_ON_status =false, rel2_ON_status =false, rel3_ON_status =false, rel4_ON_status =false; 
 int onTime=0;int alertTime=10000;
+long now;
 
 
 
@@ -117,19 +108,19 @@ const char* serverIndex = "<script src='https://ajax.googleapis.com/ajax/libs/jq
 
 
 //baie ventilator
-#define SW1 39  //poz 2
+#define SW2_2 21  //poz 2
 
 //baie lumina
-#define SW2 36  //poz 2
+#define SW2_1 22  //poz 2
 
 
 //birou lumina
-#define SW3 23  //poz 3
-#define SW3_1 22  //poz 4
-#define SW3_2 21  //poz 5
+#define SW3_1 36  //poz 3
+#define SW4_1 39  //poz 4
+#define SW5_1 34  //poz 5
 
 //tavan
-#define SW4 19  //poz 9
+#define SW9_1 35  //poz 9
 
 
 
@@ -153,12 +144,9 @@ NTPClient timeClient(ntpUDP);
 
 
 
-int sw1_state,sw2_state,sw3_state,sw4_state,sw1_1_state,sw2_1_state,sw3_1_state,sw3_2_state,sw4_1_state;
+int SW2_2_state,SW2_1_state,SW3_1_state,SW4_1_state,SW5_1_state,SW9_1_state;
 
-int sw1PreviousState=LOW,sw2PreviousState=LOW,sw3PreviousState=LOW,sw4PreviousState=LOW, sw1_1PreviousState=LOW,sw2_1PreviousState=LOW,sw3_1PreviousState=LOW,sw3_2PreviousState=LOW,sw4_1PreviousState=LOW;
-
-char sw1[25],sw2[25],sw3[25],sw4[25], sw1_1[25],sw2_1[25],sw3_1[25],sw3_2[25],sw4_1[25];
-
+int SW2_2PreviousState=LOW,SW2_1PreviousState=LOW,SW3_1PreviousState=LOW, SW4_1PreviousState=LOW,SW5_1PreviousState=LOW,SW9_1PreviousState=LOW;
 
 
 bool set_rel1 ,set_rel2,set_rel3,set_rel4; //remote states
@@ -260,10 +248,9 @@ void sendLog(String message){
 
   root.prettyPrintTo(JSONmessageBuffer, sizeof(JSONmessageBuffer));
 
-  http.begin("http://192.168.1.40:2000/api/log"); //Specify destination for HTTP request
 
   
-  //http.begin("http://192.168.2.3:2000/api/log"); //Specify destination for HTTP request
+  http.begin("http://192.168.2.10:2000/api/log"); //Specify destination for HTTP request
   http.addHeader("Content-Type", "application/json"); //Specify content-type header
   //int httpResponseCode = http.POST("POSTING from ESP32"); //Send the actual POST request
   int httpResponseCode = http.POST(JSONmessageBuffer); //Send the actual POST request
@@ -598,12 +585,12 @@ void setup(void){
   EEPROM.begin(EEPROM_SIZE);//init eeprom
 
   
-  pinMode(SW1, INPUT); //baie ventilator
-  pinMode(SW2, INPUT);  //baie lumina
-  pinMode(SW3, INPUT); //birou 1
-  pinMode(SW3_1, INPUT); //birou 2
-  pinMode(SW3_2, INPUT); // birou 3
-  pinMode(SW4, INPUT); //tavan living
+  pinMode(SW2_2, INPUT); //baie ventilator
+  pinMode(SW2_1, INPUT);  //baie lumina
+  pinMode(SW3_1, INPUT); //birou 1
+  pinMode(SW4_1, INPUT); //birou 2
+  pinMode(SW5_1, INPUT); // birou 3
+  pinMode(SW9_1, INPUT); //tavan living
 
   
   
@@ -791,19 +778,19 @@ void setup(void){
 void loop(void){
   server.handleClient();
   
-long now = millis();
+now = millis();
 
 poll_connection();
 
  if (WiFi.isConnected()) 
   {
   //timerWrite(timer, 0); //reset timer (feed watchdog)
-  sw1_state=digitalRead(SW1);
-  sw2_state=digitalRead(SW2);
-  sw3_state=digitalRead(SW3);
-  sw3_1_state=digitalRead(SW3_1);
-  sw3_2_state=digitalRead(SW3_2);
-  sw4_state=digitalRead(SW4);
+  SW2_2_state=digitalRead(SW2_2);
+  SW2_1_state=digitalRead(SW2_1);
+  SW3_1_state=digitalRead(SW3_1);
+  SW4_1_state=digitalRead(SW4_1);
+  SW5_1_state=digitalRead(SW5_1);
+  SW9_1_state=digitalRead(SW9_1);
   
   timerWrite(timer, 0); //reset timer (feed watchdog)
 
@@ -813,53 +800,7 @@ poll_connection();
 
     
     
-
-    ///work it locally if no MQTT connected
-
-//    sw1_state=digitalRead(SW1);
-//    sw2_state=digitalRead(SW2);
-//    sw3_state=digitalRead(SW3);
-//    sw1_1_state=digitalRead(SW1_1);
-//    sw2_1_state=digitalRead(SW2_1);
-//    sw3_1_state=digitalRead(SW3_1);
-//
-//      
-//      if (sw1_state==LOW){
-//        digitalWrite(LAMP1,HIGH);
-//      }else{
-//         digitalWrite(LAMP1,LOW);
-//      }
-//        if (sw2_state==LOW){
-//        digitalWrite(LAMP2,HIGH);
-//      }else{
-//         digitalWrite(LAMP2,LOW);
-//      }
-//    
-//        if (sw3_state==LOW){
-//        digitalWrite(LAMP3,HIGH);
-//      }else{
-//         digitalWrite(LAMP3,LOW);
-//      }
-//
-//      
-//
-//       if (sw1_1_state==LOW){
-//        digitalWrite(LAMP1,HIGH);
-//      }else{
-//         digitalWrite(LAMP1,LOW);
-//      }
-//        if (sw2_1_state==LOW){
-//        digitalWrite(LAMP2,HIGH);
-//      }else{
-//         digitalWrite(LAMP2,LOW);
-//      }
-//    
-//        if (sw3_1_state==LOW){
-//        digitalWrite(LAMP3,HIGH);
-//      }else{
-//         digitalWrite(LAMP3,LOW);
-//      }
-//
+//TODO
 
 
 
@@ -915,53 +856,15 @@ poll_connection();
 
 
   ////////////////////////////////////////////////////////
-
-
-    if ( (sw1_state==HIGH && sw1_state!=sw1PreviousState)  ){ // 
-       Serial.println("REL1 HIGH from sw1");
-       mySwitch.send("000000000000000000001111");  // ID 3  ON
-       digitalWrite(LAMP1,LOW);
-       Serial.println("Publishing");
-       client.publish("eHomeLightUnit3/rel1","ON");
-       sw1PreviousState=HIGH;
-
-
-    //alert variables
-    rel1_ON_status=true;
-    onTime = now;
-    
-   
-  }
-   
-  
-  
-  if ( (sw1_state==LOW && sw1_state!=sw1PreviousState) ){   //
-     Serial.println("REL1 Low from sw1");
-      mySwitch.send("000000000000000000001110");  // ID 3  OFF
-   digitalWrite(LAMP1,HIGH);
-          Serial.println("Publishing");
-          client.publish("eHomeLightUnit3/rel1","OFF");
-       
-    
-    sw1PreviousState=LOW;
- 
-    //alert variables
-    rel1_ON_status=false;
-
-    
-  }
-
-
-
-
-
+SW2_2_on();
+SW2_2_off();
 
 
 if (set_rel1==false){   //if a new remote message arrived 
   //Serial.println("processing incomming message");
   if (rel1_remote=="OFF"){
-      mySwitch.send("000000000000000000001110");  //process it
-      client.publish("eHomeLightUnit3/rel1","OFF");
+      mySwitch.send("000000000000000000001010");  //process it
+     // client.publish("eHomeLightUnit3/rel1","OFF");
       digitalWrite(LAMP1,HIGH);
       Serial.println("remote OFF");
       set_rel1=true;
@@ -973,8 +876,8 @@ if (set_rel1==false){   //if a new remote message arrived
   
   }
     if (rel1_remote=="ON"){
-      mySwitch.send("000000000000000000001111");  //process it
-      client.publish("eHomeLightUnit3/rel1","ON");
+      mySwitch.send("000000000000000000001011");  //process it
+      //client.publish("eHomeLightUnit3/rel1","ON");
       digitalWrite(LAMP1,LOW);
       Serial.println("remote ON");
       set_rel1=true;
@@ -1025,56 +928,16 @@ if (set_rel1==false){   //if a new remote message arrived
 
 
   ////////////////////////////////////////////////////////
-
-
-  if ( (sw2_state==HIGH && sw2_state!=sw2PreviousState)  ){ // 
-       Serial.println("REL2 HIGH from sw2");
-       mySwitch.send("000000000000000000001011");
-       digitalWrite(LAMP2,LOW);
-       Serial.println("Publishing");
-       client.publish("eHomeLightUnit3/rel2","ON");
-    
-    
-    sw2PreviousState=HIGH;
-
-
-    //alert variables
-    rel2_ON_status=true;
-    onTime = now;
-    
-   
-  }
-   
-  
-  
-  if ( (sw2_state==LOW && sw2_state!=sw2PreviousState) ){   //
-     Serial.println("REL2 Low from sw2");
-     mySwitch.send("000000000000000000001010");
-     digitalWrite(LAMP2,HIGH);
-     Serial.println("Publishing");
-     client.publish("eHomeLightUnit3/rel2","OFF");
-       
-    
-    sw2PreviousState=LOW;
- 
-    //alert variables
-    rel2_ON_status=false;
-
-    
-  }
-
-
-
-
-
+SW2_1_on();
+SW2_1_off();
 
 
 if (set_rel2==false){   //if a new remote message arrived 
   //Serial.println("processing incomming message");
   if (rel2_remote=="OFF"){
-      mySwitch.send("000000000000000000001010");  //process it
+      mySwitch.send("000000000000000000001110");  //process it
       digitalWrite(LAMP2,HIGH);
-      client.publish("eHomeLightUnit3/rel2","OFF");
+      //client.publish("eHomeLightUnit3/rel2","OFF");
       Serial.println("remote OFF");
       set_rel2=true;
        client.publish("eHomeLightUnits/log","eHomeLightUnit3 REL2 remote control");
@@ -1085,9 +948,9 @@ if (set_rel2==false){   //if a new remote message arrived
   
   }
     if (rel2_remote=="ON"){
-      mySwitch.send("000000000000000000001011");  //process it
+      mySwitch.send("000000000000000000001111");  //process it
       digitalWrite(LAMP2,LOW);
-      client.publish("eHomeLightUnit3/rel2","ON");
+     //client.publish("eHomeLightUnit3/rel2","ON");
       Serial.println("remote ON");
       set_rel2=true;
       client.publish("eHomeLightUnits/log","eHomeLightUnit3 REL2 remote control");
@@ -1110,7 +973,7 @@ if (set_rel2==false){   //if a new remote message arrived
 
 
 
-///////REL3   //birou lumina    ID 2
+///////REL3   //birou lumina    ID 4
 
 
   //check if the start switch time is higher than the specified interval and that no alert has been sent 
@@ -1144,124 +1007,18 @@ if (set_rel2==false){   //if a new remote message arrived
   ////////////////////////////////////////////////////////
 
 
-    if ( (sw3_2_state==HIGH && sw3_2_state!=sw3_2PreviousState)  ){ // 
-       Serial.println("REL3 HIGH from sw 3_2");
-       mySwitch.send("000000000000000000000111");
-       digitalWrite(LAMP3,LOW);
-       Serial.println("Publishing");
-       client.publish("eHomeLightUnit3/rel3","ON");
-       sw3_2PreviousState=HIGH;
-       //alert variables
-       rel3_ON_status=true;
-       onTime = now;
-    
+SW3_1_on();
+SW3_1_off();  
+SW4_1_on();
+SW4_1_off();
+SW5_1_on();
+SW5_1_off();
    
-  }
-
-
- if ( (sw3_2_state==LOW && sw3_2_state!=sw3_2PreviousState) ){   //
-     Serial.println("REL3 Low from sw3_2");
-     mySwitch.send("000000000000000000000110");
-     digitalWrite(LAMP3,HIGH);
-     Serial.println("Publishing");
-     client.publish("eHomeLightUnit3/rel3","OFF");
-     sw3_2PreviousState=LOW; 
-     //alert variables
-     rel3_ON_status=false;
-
-    
-  }
-
-
-
-
-
-  ////////////////////////////////////////////////////////
-
-//
-//    if ( (sw3_1_state==HIGH && sw3_1_state!=sw3_1PreviousState)  ){ // 
-//       Serial.println("REL3 HIGH from sw 3_1");
-//       digitalWrite(LAMP3,LOW);
-//          Serial.println("Publishing");
-//          client.publish("eHomeLightUnit3/rel3","ON");
-//    
-//    
-//
-//    sw3_1PreviousState=HIGH;
-//
-//    //alert variables
-//    rel3_ON_status=true;
-//    onTime = now;
-//    
-//   
-//  }
-//
-//
-// if ( (sw3_1_state==LOW && sw3_1_state!=sw3_1PreviousState) ){   //
-//     Serial.println("REL3 Low from sw3_1");
-//   digitalWrite(LAMP3,HIGH);
-//          Serial.println("Publishing");
-//          client.publish("eHomeLightUnit3/rel3","OFF");
-//       
-//    
-//
-//    sw3_1PreviousState=LOW; 
-//    //alert variables
-//    rel3_ON_status=false;
-//
-//    
-//  }
-//
-//  
-//
-//  ////////////////////////////////////////////////////////
-//
-//
-//
-//    if ( (sw3_state==HIGH && sw3_state!=sw3PreviousState)  ){ // 
-//       Serial.println("REL3 HIGH from sw3");
-//       digitalWrite(LAMP3,LOW);
-//          Serial.println("Publishing");
-//          client.publish("eHomeLightUnit3/rel3","ON");
-//    
-//    
-//    sw3PreviousState=HIGH;
-//
-//
-//    //alert variables
-//    rel3_ON_status=true;
-//    onTime = now;
-//    
-//   
-//  }
-//   
-//  
-//  
-//  if ( (sw3_state==LOW && sw3_state!=sw3PreviousState) ){   //
-//     Serial.println("REL3 Low from sw3");
-//   digitalWrite(LAMP3,HIGH);
-//          Serial.println("Publishing");
-//          client.publish("eHomeLightUnit3/rel3","OFF");
-//       
-//    
-//    sw3PreviousState=LOW;
-// 
-//    //alert variables
-//    rel3_ON_status=false;
-//
-//    
-//  }
-//
-
-
-
-
-
 
 if (set_rel3==false){   //if a new remote message arrived 
   //Serial.println("processing incomming message");
   if (rel3_remote=="OFF"){
-      mySwitch.send("000000000000000000000110");  //process it
+      mySwitch.send("000000000000000000000010");  //process it
       digitalWrite(LAMP3,HIGH);
       client.publish("eHomeLightUnit3/rel3","OFF");
       Serial.println("remote OFF");
@@ -1274,7 +1031,7 @@ if (set_rel3==false){   //if a new remote message arrived
   
   }
     if (rel3_remote=="ON"){
-      mySwitch.send("000000000000000000000111");  //process it
+      mySwitch.send("000000000000000000000011");  //process it
       digitalWrite(LAMP3,LOW);
       client.publish("eHomeLightUnit3/rel3","ON");
       Serial.println("remote ON");
@@ -1296,113 +1053,77 @@ if (set_rel3==false){   //if a new remote message arrived
 
 
 
-/////////REL4  //tavan    ID 4
-//
-//
-//  //check if the start switch time is higher than the specified interval and that no alert has been sent 
-//  // and send the message
-//  if (rel4_ON_status==true){
-//   
-//  
-//    if (now - onTime >= EEPROMReadlong(addr)) { //default on 10 min
-//
-//     onTime = now;
-//      Serial.println(onTime);
-//        if (alert_sent==false){
-//            client.publish("eHomeLightUnit3/rel4/alert","Alert timeout occured");
-//            alert_sent=true;
-//            Serial.println(EEPROMReadlong(addr));
-//            Serial.println("Alert sent");
-//           
-//        }
-//     
-//     //Serial.println(alert_sent);
-//     //Serial.println(onTime);
-//     alert_sent=false;
-//    }
-//   
-//  }
-//
-//
-//     //alert variables
-//  
-//
-//
-//  ////////////////////////////////////////////////////////
-//
-//
-//
-//
-//    if ( (sw4_state==HIGH && sw4_state!=sw4PreviousState)  ){ // 
-//       Serial.println("REL4 HIGH from sw4");
-//       digitalWrite(LAMP4,LOW);
-//          Serial.println("Publishing");
-//          client.publish("eHomeLightUnit3/rel4","ON");
-//    
-//    
-//    sw4PreviousState=HIGH;
-//
-//
-//    //alert variables
-//    rel4_ON_status=true;
-//    onTime = now;
-//    
-//   
-//  }
-//   
-//  
-//  
-//  if ( (sw4_state==LOW && sw4_state!=sw4PreviousState) ){   //
-//     Serial.println("REL4 Low from sw4");
-//   digitalWrite(LAMP4,HIGH);
-//          Serial.println("Publishing");
-//          client.publish("eHomeLightUnit3/rel4","OFF");
-//       
-//    
-//    sw4PreviousState=LOW;
-// 
-//    //alert variables
-//    rel4_ON_status=false;
-//
-//    
-//  }
-//
-//
-//
-//
-//
-//
-//
-//if (set_rel4==false){   //if a new remote message arrived 
-//  //Serial.println("processing incomming message");
-//  if (rel4_remote=="OFF"){
-//      mySwitch.send("000000000000000000001110");  //process it
-//      digitalWrite(LAMP4,HIGH);
-//      Serial.println("remote OFF");
-//      set_rel4=true;
-//       client.publish("eHomeLightUnits/log","eHomeLightUnit3 REL4 remote control");
-//       
-//       //alert variables
-//       rel4_ON_status=false;
-//    
-//  
-//  }
-//    if (rel4_remote=="ON"){
-//      mySwitch.send("000000000000000000001111");  //process it
-//      digitalWrite(LAMP4,LOW);
-//      Serial.println("remote ON");
-//      set_rel4=true;
-//      client.publish("eHomeLightUnits/log","eHomeLightUnit3 REL4 remote control");
-//      
-//      //alert variables
-//
-//      rel4_ON_status=true;
-//      onTime = now;
-//    
-//  }
-// 
-//
-//}
+///////REL4  //tavan    ID 2
+
+
+  //check if the start switch time is higher than the specified interval and that no alert has been sent 
+  // and send the message
+  if (rel4_ON_status==true){
+   
+  
+    if (now - onTime >= EEPROMReadlong(addr)) { //default on 10 min
+
+     onTime = now;
+      Serial.println(onTime);
+        if (alert_sent==false){
+            client.publish("eHomeLightUnit3/rel4/alert","Alert timeout occured");
+            alert_sent=true;
+            Serial.println(EEPROMReadlong(addr));
+            Serial.println("Alert sent");
+           
+        }
+     
+     //Serial.println(alert_sent);
+     //Serial.println(onTime);
+     alert_sent=false;
+    }
+   
+  }
+
+
+     //alert variables
+  
+
+
+  ////////////////////////////////////////////////////////
+
+
+SW9_1_on();
+SW9_1_off();
+
+
+
+
+if (set_rel4==false){   //if a new remote message arrived 
+  //Serial.println("processing incomming message");
+  if (rel4_remote=="OFF"){
+      mySwitch.send("000000000000000000000110");  //process it
+      digitalWrite(LAMP4,HIGH);
+      Serial.println("remote OFF");
+      set_rel4=true;
+       client.publish("eHomeLightUnits/log","eHomeLightUnit3 REL4 remote control");
+       
+       //alert variables
+       rel4_ON_status=false;
+    
+  
+  }
+    if (rel4_remote=="ON"){
+      mySwitch.send("000000000000000000000111");  //process it
+      digitalWrite(LAMP4,LOW);
+      Serial.println("remote ON");
+      set_rel4=true;
+      client.publish("eHomeLightUnits/log","eHomeLightUnit3 REL4 remote control");
+      
+      //alert variables
+
+      rel4_ON_status=true;
+      onTime = now;
+    
+  }
+ 
+
+}
 
 
 
@@ -1416,33 +1137,7 @@ if (set_rel3==false){   //if a new remote message arrived
    if (! WiFi.isConnected()) {
     timerWrite(timer, 0); //reset timer (feed watchdog)
 
-//      sw1_state=digitalRead(SW1);
-//      sw2_state=digitalRead(SW2);
-//      sw3_state=digitalRead(SW3);
-//      sw4_state=digitalRead(SW4);
-//      if (sw1_state==LOW){
-//        digitalWrite(LAMP1,HIGH);
-//      }else{
-//         digitalWrite(LAMP1,LOW);
-//      }
-//        if (sw2_state==LOW){
-//        digitalWrite(LAMP2,HIGH);
-//      }else{
-//         digitalWrite(LAMP2,LOW);
-//      }
-//    
-//        if (sw3_state==LOW){
-//        digitalWrite(LAMP3,HIGH);
-//      }else{
-//         digitalWrite(LAMP3,LOW);
-//      }
-//
-//          if (sw4_state==LOW){
-//        digitalWrite(LAMP4,HIGH);
-//      }else{
-//         digitalWrite(LAMP4,LOW);
-//      }
-//    
+//TODO 
     
    
   }
@@ -1452,4 +1147,253 @@ if (set_rel3==false){   //if a new remote message arrived
 
 
 }
+
+
+void SW2_2_on(){
+  
+    if ( (SW2_2_state==HIGH && SW2_2_state!=SW2_2PreviousState)  ){ // 
+       Serial.println("REL1 HIGH from SW2_2");
+       mySwitch.send("000000000000000000001011");  // ID 3  ON
+       digitalWrite(LAMP1,LOW);
+       Serial.println("Publishing");
+       client.publish("eHomeLightUnit3/rel1","ON");
+       SW2_2PreviousState=HIGH;
+
+
+    //alert variables
+    rel1_ON_status=true;
+    onTime = now;
+    
+   
+  }  
+}
+
+   
+void SW2_2_off(){
+  
+    if ( (SW2_2_state==LOW && SW2_2_state!=SW2_2PreviousState) ){   //
+     Serial.println("REL1 Low from SW2_2");
+     mySwitch.send("000000000000000000001010");  // ID 3  OFF
+     digitalWrite(LAMP1,HIGH);
+          Serial.println("Publishing");
+          client.publish("eHomeLightUnit3/rel1","OFF");
+       
+    
+    SW2_2PreviousState=LOW;
+ 
+    //alert variables
+    rel1_ON_status=false;
+
+    
+  } 
+}
+
+
+void SW2_1_on(){
+  if ( (SW2_1_state==HIGH && SW2_1_state!=SW2_1PreviousState)  ){ // 
+       Serial.println("REL2 HIGH from SW2_1");
+       mySwitch.send("000000000000000000001111");  //ID 1
+       digitalWrite(LAMP2,LOW);
+       Serial.println("Publishing");
+       client.publish("eHomeLightUnit3/rel2","ON");
+    
+    
+    SW2_1PreviousState=HIGH;
+
+
+    //alert variables
+    rel2_ON_status=true;
+    onTime = now;
+    
+   
+  } 
+}
+ 
+   
+void SW2_1_off(){
+    
+  if ( (SW2_1_state==LOW && SW2_1_state!=SW2_1PreviousState) ){   //
+     Serial.println("REL2 Low from SW2_1");
+     mySwitch.send("000000000000000000001110"); //ID 1
+     digitalWrite(LAMP2,HIGH);
+     Serial.println("Publishing");
+     client.publish("eHomeLightUnit3/rel2","OFF");
+       
+    
+    SW2_1PreviousState=LOW;
+ 
+    //alert variables
+    rel2_ON_status=false;
+
+    
+  }
+
+}
+
+
+void SW5_1_on(){
+   if ( (SW5_1_state==HIGH && SW5_1_state!=SW5_1PreviousState)  ){ // 
+       Serial.println("REL3 HIGH from sw 3_2");
+       mySwitch.send("000000000000000000000011");  //ID 4
+       digitalWrite(LAMP3,LOW);
+       Serial.println("Publishing");
+       client.publish("eHomeLightUnit3/rel3","ON");
+       
+       SW5_1PreviousState=HIGH;
+       //alert variables
+       rel3_ON_status=true;
+       onTime = now;
+    
+   
+  }
+}
+   
+
+void SW5_1_off(){
+  if ( (SW5_1_state==LOW && SW5_1_state!=SW5_1PreviousState) ){   //
+     Serial.println("REL3 Low from SW5_1");
+     mySwitch.send("000000000000000000000010");  //ID 4
+     digitalWrite(LAMP3,HIGH);
+     Serial.println("Publishing");
+     client.publish("eHomeLightUnit3/rel3","OFF");
+    
+     SW5_1PreviousState=LOW; 
+     //alert variables
+     rel3_ON_status=false;
+
+    
+  }
+}
+ 
+
+
+
+void SW4_1_on(){
+      if ( (SW4_1_state==HIGH && SW4_1_state!=SW4_1PreviousState)  ){ // 
+       Serial.println("REL3 HIGH from SW4_1");
+        mySwitch.send("000000000000000000000011");  //ID 4
+        digitalWrite(LAMP3,LOW);
+          Serial.println("Publishing");
+          client.publish("eHomeLightUnit3/rel3","ON");
+    
+    
+
+    SW4_1PreviousState=HIGH;
+
+    //alert variables
+    rel3_ON_status=true;
+    onTime = now;
+    
+   
+  }
+}
+
+void SW4_1_off(){
+
+  
+ if ( (SW4_1_state==LOW && SW4_1_state!=SW4_1PreviousState) ){   //
+     Serial.println("REL3 Low from SW4_1");
+    mySwitch.send("000000000000000000000010");  //ID 4
+    digitalWrite(LAMP3,HIGH);
+          Serial.println("Publishing");
+          client.publish("eHomeLightUnit3/rel3","OFF");
+       
+    
+
+    SW4_1PreviousState=LOW; 
+    //alert variables
+    rel3_ON_status=false;
+
+    
+  }
+}
+
+
+
+  
+
+ void SW3_1_on(){
+ if ( (SW3_1_state==HIGH && SW3_1_state!=SW3_1PreviousState)  ){ // 
+       Serial.println("REL3 HIGH from SW3_1");
+       mySwitch.send("000000000000000000000011");  //ID 4
+       digitalWrite(LAMP3,LOW);
+          Serial.println("Publishing");
+          client.publish("eHomeLightUnit3/rel3","ON");
+    
+    
+    SW3_1PreviousState=HIGH;
+
+
+    //alert variables
+    rel3_ON_status=true;
+    onTime = now;
+    
+   
+  }
+  
+ }
+
+
+void SW3_1_off(){
+
+  if ( (SW3_1_state==LOW && SW3_1_state!=SW3_1PreviousState) ){   //
+     Serial.println("REL3 Low from SW3_1");
+     mySwitch.send("000000000000000000000010");  //ID 4
+     digitalWrite(LAMP3,HIGH);
+          Serial.println("Publishing");
+          client.publish("eHomeLightUnit3/rel3","OFF");
+       
+    
+    SW3_1PreviousState=LOW;
+ 
+    //alert variables
+    rel3_ON_status=false;
+
+    
+  }
+
+  
+}
+void SW9_1_on(){
+ if ( (SW9_1_state==HIGH && SW9_1_state!=SW9_1PreviousState)  ){ // 
+       Serial.println("REL4 HIGH from SW9_1");
+       mySwitch.send("000000000000000000000111");  //ID 2
+       digitalWrite(LAMP4,LOW);
+          Serial.println("Publishing");
+          client.publish("eHomeLightUnit3/rel4","ON");
+    
+    
+    SW9_1PreviousState=HIGH;
+
+
+    //alert variables
+    rel4_ON_status=true;
+    onTime = now;
+    
+   
+  }
+  
+}
+   
+   
+  void SW9_1_off(){
+  
+  if ( (SW9_1_state==LOW && SW9_1_state!=SW9_1PreviousState) ){   //
+     Serial.println("REL4 Low from SW9_1");
+     mySwitch.send("000000000000000000000110");  //ID 2
+     digitalWrite(LAMP4,HIGH);
+          Serial.println("Publishing");
+          client.publish("eHomeLightUnit3/rel4","OFF");
+       
+    
+    SW9_1PreviousState=LOW;
+ 
+    //alert variables
+    rel4_ON_status=false;
+
+    
+  }
+
+  }
+
 

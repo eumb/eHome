@@ -9,15 +9,12 @@
 #include <ESP8266WebServer.h>
 #include <ESP8266mDNS.h>    
 
-#define Strip1RedPin D1
-#define Strip1GreenPin D2
-#define Strip1BluePin D3
-#define Strip1WhitePin D4
+#define Strip1RedPin D5
+#define Strip1GreenPin D6
+#define Strip1BluePin D7
+#define Strip1WhitePin D8
 
-#define Strip2RedPin D5
-#define Strip2GreenPin D6
-#define Strip2BluePin D7
-#define Strip2WhitePin D8
+
 
 const char* serverIndex = "<script src='https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js'></script>"
 "<form method='POST' action='#' enctype='multipart/form-data' id='upload_form'>"
@@ -55,32 +52,26 @@ const char* serverIndex = "<script src='https://ajax.googleapis.com/ajax/libs/jq
 "});"
 "</script>";
 
-int strip1RedLedVal;
-int strip1GreenLedVal;
-int strip1BlueLedVal;
-int strip1WhiteLedVal;
-int strip2RedLedVal;
-int strip2GreenLedVal;
-int strip2BlueLedVal;
-int strip2WhiteLedVal;
+int Strip1RedLedVal;
+int Strip1GreenLedVal;
+int Strip1BlueLedVal;
+int Strip1WhiteLedVal;
 
 
-const char* host = "RGBWStripKitchen";
+const char* host = "RGBWStrip1Kitchen";
 
-//const char* ssid     = "eHome";
-//const char* password = "allI0Td3v1c3s!";
+const char* ssid     = "eHome";
+const char* password = "allI0Td3v1c3s!";
 
-const char* ssid     = "Yoyo_home";
-const char* password = "sccsa25g";
 
-char* serverMqtt = "192.168.1.40";
+char* serverMqtt = "192.168.2.10";
 const char* binFile="eHomeRGBWStrip1.ino.d1_mini.bin";
 const char* url      = "/api";
-const char* deviceId = "RGBWStripKitchen";
+const char* deviceId = "RGBWStrip1Kitchen";
 const char* eHomeFwVer = "1.0";
 const char* deviceType = "LEDStrip";
 const char* deviceLocation = "Ground Floor";
-const char* deviceScope = "Kitchen LED Strip";
+const char* deviceScope = "Kitchen LED Strip1";
 
 
 ESP8266WebServer server(80);
@@ -124,7 +115,7 @@ void ISRwatchdog(){
 void updateFW(){
   sendLog("Updating....");
   ESPhttpUpdate.rebootOnUpdate(true);
-  t_httpUpdate_return ret=ESPhttpUpdate.update("192.168.1.40", 80, "/RGBWStripKitchen.bin");
+  t_httpUpdate_return ret=ESPhttpUpdate.update("192.168.2.10", 80, "/RGBWStrip1Kitchen.bin");
   Serial.print("ret ");Serial.println(ret);
 
 
@@ -175,7 +166,7 @@ void sendLog(String message){
   root.prettyPrintTo(JSONmessageBuffer, sizeof(JSONmessageBuffer));
   
   
-  http.begin("http://192.168.1.40:2000/api/log"); //Specify destination for HTTP request
+  http.begin("http://192.168.2.10:2000/api/log"); //Specify destination for HTTP request
   http.addHeader("Content-Type", "application/json"); //Specify content-type header
   int httpResponseCode = http.POST(JSONmessageBuffer); //Send the actual POST request
   
@@ -203,15 +194,15 @@ void sendLog(String message){
 //reconnect on MQTT connection lost
 boolean reconnect() {
   
-  if (client.connect("RGBWStripKitchen")) {
+  if (client.connect("RGBWStrip1Kitchen")) {
     // Once connected, publish an announcement...
-    client.publish("log","reconnected; Hello from RGBWStripKitchen");
+    client.publish("log","reconnected; Hello from RGBWStrip1Kitchen");
     // ... and resubscribe
      client.subscribe("RGBWStrip1Kitchen/colorValues");
-     client.subscribe("RGBWStrip2Kitchen/colorValues");
+
      client.subscribe("Strip1Kitchen/white");
-     client.subscribe("Strip2Kitchen/white");
-     client.publish("RGBWStripKitchen/log","RGBWStripKitchen client connected");
+
+     client.publish("RGBWStrip1Kitchen/log","RGBWStrip1Kitchen client connected");
 
      Serial.println("MQTT connected");
      sendLog("MQTT connected");
@@ -268,62 +259,21 @@ void callback(char* topic, byte* payload, unsigned int length) {
 
 
   // using the locations of ; find values 
-  strip1RedLedVal = value.substring(0 , (firstClosingBracket - 1)).toInt();
-  strip1GreenLedVal = value.substring(firstClosingBracket , secondClosingBracket).toInt();
-  strip1BlueLedVal = value.substring((secondClosingBracket +1) , thirdClosingBracket).toInt();
+  Strip1RedLedVal = value.substring(0 , (firstClosingBracket - 1)).toInt();
+  Strip1GreenLedVal = value.substring(firstClosingBracket , secondClosingBracket).toInt();
+  Strip1BlueLedVal = value.substring((secondClosingBracket +1) , thirdClosingBracket).toInt();
 
 
 
 
-  analogWrite(Strip1GreenPin, strip1GreenLedVal*10.23);
-  analogWrite(Strip1RedPin, strip1RedLedVal*10.23);
-  analogWrite(Strip1BluePin, strip1BlueLedVal*10.23);
+  analogWrite(Strip1GreenPin, Strip1GreenLedVal*10.23);
+  analogWrite(Strip1RedPin, Strip1RedLedVal*10.23);
+  analogWrite(Strip1BluePin, Strip1BlueLedVal*10.23);
 
      
   }
 
 
-  if(strcmp(topic,"RGBWStrip2Kitchen/colorValues")==0){
-  // check for messages on subscribed topics
-  payload[length] = '\0';
-  Serial.print("Topic: ");
-  Serial.println(String(topic));
-
-  // convert payload to String
-  String value = String((char*)payload);
-  //value.trim();
-  Serial.print (value);
-
-// find first ; in the string
-  int firstClosingBracket = value.indexOf(';')+1;
-
-  // find second ; in the string
-  int secondOpeningBracket = firstClosingBracket + 1;
-  int secondClosingBracket = value.indexOf(';', secondOpeningBracket);
-
-  // find the third ; in the string
-  int thirdOpeningBracket = secondClosingBracket + 1;
-  int thirdClosingBracket = value.indexOf(';', thirdOpeningBracket);
-
-//  // find the fourth ; in the string
-//  int fourthOpeningBracket = thirdClosingBracket + 1;
-//  int fourthClosingBracket = value.indexOf(';', fourthOpeningBracket);
-
-
-  // using the locations of ; find values 
-  strip2RedLedVal = value.substring(0 , (firstClosingBracket - 1)).toInt();
-  strip2GreenLedVal = value.substring(firstClosingBracket , secondClosingBracket).toInt();
-  strip2BlueLedVal = value.substring((secondClosingBracket +1) , thirdClosingBracket).toInt();
-  //strip1WhiteLedVal = value.substring((thirdClosingBracket +1) , fourthClosingBracket).toInt();
-
-
-
-  analogWrite(Strip2GreenPin, strip2GreenLedVal*10.23);
-  analogWrite(Strip2RedPin, strip2RedLedVal*10.23);
-  analogWrite(Strip2BluePin, strip2BlueLedVal*10.23);
-  
-     
-  }
 
   if (strcmp(topic,"Strip1Kitchen/white")==0){
    // check for messages on subscribed topics
@@ -342,22 +292,7 @@ void callback(char* topic, byte* payload, unsigned int length) {
 
 }
 
-  if (strcmp(topic,"Strip2Kitchen/white")==0){
-   // check for messages on subscribed topics
-  payload[length] = '\0';
-  Serial.print("Topic: ");
-  Serial.println(String(topic));
-
-   // convert payload to String
-  String value = String((char*)payload);
-  //value.trim();
-  Serial.print (value);
-  analogWrite(Strip2GreenPin, 0);
-  analogWrite(Strip2RedPin, 0);
-  analogWrite(Strip2BluePin, 0);
-  analogWrite(Strip2WhitePin, value.toInt()*10.23);
-
-}
+ 
 
  }
 
@@ -381,12 +316,7 @@ void setup() {
   pinMode(Strip1BluePin, OUTPUT);
   pinMode(Strip1WhitePin, OUTPUT);
   
-  pinMode(Strip2RedPin, OUTPUT);
-  pinMode(Strip2GreenPin, OUTPUT);
-  pinMode(Strip2BluePin, OUTPUT);
-  pinMode(Strip2WhitePin, OUTPUT);
-  
-  //digitalWrite(Strip2WhitePin,HIGH);
+ 
   digitalWrite(Strip1WhitePin,LOW);
  
  // We start by connecting to a WiFi network
