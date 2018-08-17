@@ -1,0 +1,53 @@
+Light
+--SW
+   -- refactoring based on unit 3 for all on ground floor
+   -- teste cu toate unitatile
+		-- living
+		-- kitchen
+		-- util
+--HW
+    -- manufacturare x 3 (etaj)
+LED
+
+--SW
+	
+	--refacut si teste cu toate unitatile
+
+--HW
+  Driver LED cu TIP41
+	--pcb in progress
+	--manufacturare
+
+
+Openhab
+
+	-- definit forma finala
+	-- teste pe tableta
+
+
+Scenarii
+
+
+
+Server
+
+
+
+
+EhomeDash
+
+ pending
+
+Jaluzele
+
+ pending
+
+SWith unit
+
+  --manufacturare x1
+
+
+
+
+
+
