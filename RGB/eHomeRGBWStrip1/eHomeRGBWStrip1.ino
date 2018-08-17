@@ -56,6 +56,7 @@ int Strip1RedLedVal;
 int Strip1GreenLedVal;
 int Strip1BlueLedVal;
 int Strip1WhiteLedVal;
+<<<<<<< HEAD
 
 
 const char* host = "RGBWStrip1Kitchen";
@@ -67,6 +68,15 @@ IPAddress gateway(192, 168, 2, 1);
 IPAddress subnet(255, 255, 0, 0);
 IPAddress primaryDNS(192, 168, 2, 1); //optional
 IPAddress secondaryDNS(8, 8, 8, 8); //optional
+=======
+
+
+const char* host = "RGBWStrip1Kitchen";
+
+const char* ssid     = "eHome";
+const char* password = "allI0Td3v1c3s!";
+
+>>>>>>> 035654b824981fd7e0a30e68f9cc7f1b4fab87ca
 
 char* serverMqtt = "192.168.2.10";
 const char* binFile="eHomeRGBWStrip1.ino.d1_mini.bin";

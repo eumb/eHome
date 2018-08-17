@@ -21,6 +21,7 @@
 const char* hostName = "eHomeShadesUnit1";
 const char* ssid = "eHome";
 const char* password = "allI0Td3v1c3s!";
+<<<<<<< HEAD
 
 
 IPAddress local_IP(192, 168, 2, 24);
@@ -30,6 +31,8 @@ IPAddress primaryDNS(192, 168, 2, 1); //optional
 IPAddress secondaryDNS(8, 8, 8, 8); //optional
 
 
+=======
+>>>>>>> 035654b824981fd7e0a30e68f9cc7f1b4fab87ca
 const char* loggerHost     = "192.168.2.10";
 const char* url      = "/api";
 char* serverMqtt = "192.168.2.10";
@@ -111,6 +114,7 @@ const char* serverIndex = "<script src='https://ajax.googleapis.com/ajax/libs/jq
 //A zone
 
 //Control buttons
+<<<<<<< HEAD
 #define swUP 23
 #define swDOWN 22
 
@@ -145,6 +149,42 @@ const char* serverIndex = "<script src='https://ajax.googleapis.com/ajax/libs/jq
 
 //switches remote control
 #define REMOTE 4
+=======
+#define swUP 33
+#define swDOWN 32
+
+//SW definition
+#define swLiv1 35
+#define swLiv2 35
+#define swTer1 35
+#define swTer2 35
+#define swBuc 35
+
+//Relay definition
+#define Liv1Up 16
+#define Liv1Down  17
+#define Liv2Up 18
+#define Liv2Down  19
+#define Ter1Up 16
+#define Ter1Down  17
+#define Ter2Up 18
+#define Ter2Down  19
+#define KitUp 18
+#define KitDown  19
+
+//B zone
+//controll buttons
+#define swOfficeUp 35
+#define swOfficeDown 35
+
+//Relays
+#define OfficeUp 18
+#define OfficeDown  19
+
+
+//switches remote control
+#define REMOTE 25
+>>>>>>> 035654b824981fd7e0a30e68f9cc7f1b4fab87ca
 
 WiFiUDP ntpUDP;
 
@@ -159,6 +199,7 @@ NTPClient timeClient(ntpUDP);
 
 //bool sw1,sw2,sw3,remote_set;
 
+<<<<<<< HEAD
 int swLiv1_state, swLiv2_state, swTer1_state, swTer2_state, swKit_state, swUP_state, swDOWN_state, swOfficeUp_state, swOfficeDown_state;
 int swLiv1PreviousState = LOW, swLiv2PreviousState = LOW, swTer1PreviousState = LOW, swTer2PreviousState = LOW, swKitPreviousState = LOW,swUp_PrevState=LOW,swDown_PrevState=LOW,swOfficeUp_PrevState=LOW,swOfficeDown_PrevState=LOW;
 
@@ -166,6 +207,15 @@ char Liv1[25], Liv2[25], Ter1[25], Ter2[25], Kit[25],Office[25];
 String Liv1_remote, Liv2_remote, Ter1_remote, Ter2_remote, Kit_remote,Office_remote;
 
 bool set_Liv1 , set_Liv2, set_Ter1, set_Ter2, set_Kit, set_Office  ;
+=======
+int swLiv1_state, swLiv2_state, swTer1_state, swTer2_state, swKit_state;
+int swLiv1PreviousState = LOW, swLiv2PreviousState = LOW, swTer1PreviousState = LOW, swTer2PreviousState = LOW, swKitPreviousState = LOW;
+
+char sw_Liv1[25], sw_Liv2[25], sw_Ter1[25], sw_Ter2[25], sw_Kit[25];
+String swLiv1_remote, swLiv2_remote, swTer1_remote, swTer2_remote, swKit_remote;
+
+bool set_swLiv1 , set_swLiv2, set_swTer1, set_swTer2, set_swKit  ;
+>>>>>>> 035654b824981fd7e0a30e68f9cc7f1b4fab87ca
 
 long lastReconnectAttempt = 0;
 long lastConnection = 0;
@@ -271,6 +321,7 @@ boolean reconnect() {
     // Once connected, publish an announcement...
     client.publish("log", "reconnected; Hello");
     // ... and resubscribe
+<<<<<<< HEAD
     client.subscribe("eHomeShadesUnit1/Liv1Remote");
     client.subscribe("eHomeShadesUnit1/Liv2Remote");
     client.subscribe("eHomeShadesUnit1/Ter1Remote");
@@ -280,6 +331,16 @@ boolean reconnect() {
     
     client.publish("eHomeShadesUnits/log", "eHomeShadesUnit1 client connected");
     set_Liv1 = true; set_Liv2 = true; set_Ter1 = true; set_Ter2 = true; set_Kit = true,set_Office = true;
+=======
+    client.subscribe("eHomeShadesUnit1/swLiv1Remote");
+    client.subscribe("eHomeShadesUnit1/swLiv2Remote");
+    client.subscribe("eHomeShadesUnit1/swTer1Remote");
+    client.subscribe("eHomeShadesUnit1/swTer2Remote");
+    client.subscribe("eHomeShadesUnit1/swKitRemote");
+
+    client.publish("eHomeShadesUnits/log", "eHomeShadesUnit1 client connected");
+    set_swLiv1 = true; set_swLiv2 = true; set_swTer1 = true; set_swTer2 = true; set_swKit = true;
+>>>>>>> 035654b824981fd7e0a30e68f9cc7f1b4fab87ca
     Serial.println("MQTT connected");
     sendLog("MQTT connected");
 
@@ -324,6 +385,7 @@ void callback(char* topic, byte* payload, unsigned int length) {
   Serial.print(topic);
   Serial.print("] ");
 
+<<<<<<< HEAD
   if (String( (char *)topic) == "eHomeShadesUnit1/Liv1Remote") {
     int i;
     for (  i = 0; i < length; i++)
@@ -356,11 +418,46 @@ void callback(char* topic, byte* payload, unsigned int length) {
 
 
     Serial.println(Liv2);
+=======
+  if (String( (char *)topic) == "eHomeShadesUnit1/swLiv1") {
+    int i;
+    for (  i = 0; i < length; i++)
+    {
+      sw_Liv1[i] = payload[i];
+    }
+    sw_Liv1[i] = '\0';
+
+    set_swLiv1 = false;
+
+    const char *p_payload = sw_Liv1;
+    swLiv1_remote = String( (char *)p_payload);
+
+
+    Serial.println(sw_Liv1);
+  }
+
+  if (String( (char *)topic) == "eHomeShadesUnit1/swLiv2") {
+    int i;
+    for (  i = 0; i < length; i++)
+    {
+      sw_Liv2[i] = payload[i];
+    }
+    sw_Liv2[i] = '\0';
+
+    set_swLiv2 = false;
+
+    const char *p_payload = sw_Liv2;
+    swLiv2_remote = String( (char *)p_payload);
+
+
+    Serial.println(sw_Liv2);
+>>>>>>> 035654b824981fd7e0a30e68f9cc7f1b4fab87ca
   }
 
 
 
 
+<<<<<<< HEAD
   if (String( (char *)topic) == "eHomeShadesUnit1/Ter1Remote") {
     int i;
     for (  i = 0; i < length; i++)
@@ -431,6 +528,63 @@ void callback(char* topic, byte* payload, unsigned int length) {
 
     Serial.println(Office);
   }
+=======
+  if (String( (char *)topic) == "eHomeShadesUnit1/swTer1") {
+    int i;
+    for (  i = 0; i < length; i++)
+    {
+      sw_Ter1[i] = payload[i];
+    }
+    sw_Ter1[i] = '\0';
+
+    set_swTer1 = false;
+
+    const char *p_payload = sw_Ter1;
+    swTer1_remote = String( (char *)p_payload);
+
+
+    Serial.println(sw_Ter1);
+  }
+
+
+  if (String( (char *)topic) == "eHomeShadesUnit1/swTer2") {
+    int i;
+    for (  i = 0; i < length; i++)
+    {
+      sw_Ter2[i] = payload[i];
+    }
+    sw_Ter2[i] = '\0';
+
+    set_swTer2 = false;
+
+    const char *p_payload = sw_Ter2;
+    swTer2_remote = String( (char *)p_payload);
+
+
+    Serial.println(sw_Ter1);
+  }
+
+
+
+  if (String( (char *)topic) == "eHomeShadesUnit1/swKit") {
+    int i;
+    for (  i = 0; i < length; i++)
+    {
+      sw_Kit[i] = payload[i];
+    }
+    sw_Kit[i] = '\0';
+
+    set_swTer1 = false;
+
+    const char *p_payload = sw_Kit;
+    swKit_remote = String( (char *)p_payload);
+
+
+    Serial.println(sw_Kit);
+  }
+
+
+>>>>>>> 035654b824981fd7e0a30e68f9cc7f1b4fab87ca
 
 
 }
@@ -619,14 +773,18 @@ void setup(void) {
   pinMode(swTer1, INPUT_PULLDOWN);
   pinMode(swTer2, INPUT_PULLDOWN);
   pinMode(swKit, INPUT_PULLDOWN);
+<<<<<<< HEAD
   pinMode(swUP, INPUT_PULLDOWN);
   pinMode(swDOWN, INPUT_PULLDOWN);
   pinMode(swOfficeUp, INPUT_PULLDOWN);
   pinMode(swOfficeDown, INPUT_PULLDOWN);
+=======
+>>>>>>> 035654b824981fd7e0a30e68f9cc7f1b4fab87ca
 
   
   pinMode(REMOTE, OUTPUT);
 
+<<<<<<< HEAD
 
   pinMode(Liv1Up, OUTPUT);
   pinMode(Liv1Down, OUTPUT);
@@ -730,9 +888,72 @@ void setup(void) {
     JsonObject &root = jsonBuffer.createObject();
 
     uint64_t  chipid = ESP.getEfuseMac();
+=======
+
+  pinMode(Liv1Up, OUTPUT);
+  pinMode(Liv1Down, OUTPUT);
+  pinMode(Liv2Up, OUTPUT);
+  pinMode(Liv2Down, OUTPUT);
+  pinMode(Ter1Up, OUTPUT);
+  pinMode(Ter1Down, OUTPUT);
+  pinMode(Ter2Up, OUTPUT);
+  pinMode(Ter2Down, OUTPUT);
+  pinMode(KitUp, OUTPUT);
+  pinMode(KitDown, OUTPUT);
+
+  digitalWrite(Liv1Up, LOW);
+  digitalWrite(Liv1Down, LOW);
+  digitalWrite(Liv2Up, LOW);
+  digitalWrite(Liv2Down, LOW);
+  digitalWrite(Ter1Up, LOW);
+  digitalWrite(Ter1Down, LOW);
+  digitalWrite(Ter2Up, LOW);
+  digitalWrite(Ter2Down, LOW);
+  digitalWrite(KitUp, LOW);
+  digitalWrite(KitDown, LOW);
+
+
+  // We start by connecting to a WiFi network
+
+  Serial.println();
+  Serial.println();
+  Serial.print("Connecting to ");
+  Serial.println(ssid);
+
+
+  WiFi.setAutoReconnect(false);
+  WiFi.begin(ssid, password);
+  WiFi.waitForConnectResult();
+
+
+  Serial.println("");
+  Serial.println("WiFi connected");
+  Serial.println("IP address: ");
+  Serial.println(WiFi.localIP());
+
+  client.setServer(serverMqtt, 1883);
+  client.setCallback(callback);
+
+  /*use mdns for host name resolution*/
+  if (!MDNS.begin(hostName)) {
+    Serial.println("Error setting up MDNS responder!");
+    while (1) {
+      delay(1000);
+    }
+  }
+  Serial.println("mDNS responder started");
+  /*return index page which is stored in serverIndex */
+
+
+  server.on("/", HTTP_GET, []() {
+    server.sendHeader("Connection", "close");
+    server.send(200, "text/html", serverIndex);
+  });
+>>>>>>> 035654b824981fd7e0a30e68f9cc7f1b4fab87ca
 
     print_reset_reason(rtc_get_reset_reason(0));
 
+<<<<<<< HEAD
     root["heap"] = ESP.getFreeHeap();
     root["ssid"] = WiFi.SSID();
     root["wifistr"] = WiFi.RSSI();
@@ -913,9 +1134,109 @@ void loop(void) {
           Serial.println("Liv2 shades DOWN Remote");
           set_Liv2 = true;
           client.publish("eHomeShadesUnit1/log", "Liv2 shades DOWN Remote");
+=======
+  server.on("/httpUpdate", HTTP_POST, []() {
+    server.sendHeader("Connection", "close");
+    server.send(200, "text/plain", "ok");
+    //delay(2000);
+    updateFW();
+  });
+
+
+  server.on("/restart", HTTP_POST, []() {
+    server.send(200, "text/plain", "device restart");
+    //delay(2000);
+    esp_restart();
+  });
+
+  server.on("/status", HTTP_OPTIONS, []() {
+    server.sendHeader("Access-Control-Allow-Origin", "*");
+    server.sendHeader("Access-Control-Max-Age", "10000");
+    server.sendHeader("Access-Control-Allow-Methods", "POST,GET,OPTIONS");
+    server.sendHeader("Access-Control-Allow-Headers", "Access-Control-Allow-Origin, *, X-Requested-With, Content-Type, Accept");
+    server.send(200, "text/plain", "" );
+  });
+
+  server.on("/status", HTTP_GET, []() {
+
+    long currentTime = millis();
+
+    String response;
+    timeClient.update();
+    String actual_time = timeClient.getFormattedTime();
+    server.sendHeader("Access-Control-Allow-Origin", "*");
+    server.sendHeader("Access-Control-Allow-Methods", "POST,GET,OPTIONS");
+    server.sendHeader("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
+
+    DynamicJsonBuffer jsonBuffer;
+    JsonObject &root = jsonBuffer.createObject();
+
+    uint64_t  chipid = ESP.getEfuseMac();
+
+    print_reset_reason(rtc_get_reset_reason(0));
+
+    root["heap"] = ESP.getFreeHeap();
+    root["ssid"] = WiFi.SSID();
+    root["wifistr"] = WiFi.RSSI();
+    root["IP"] = WiFi.localIP().toString();
+    root["deviceId"] = deviceId;
+    root["deviceType"] = deviceType;
+    root["deviceLocation"] = deviceLocation;
+    root["deviceScope"] = deviceScope;
+    root["uptime"] = millis();
+    root["lastReason"] = reset_reason;
+    root["chipId"] = (uint32_t)chipid;
+    root["chipRevision"] = ESP.getChipRevision();
+    root["FlashSize"] = ESP.getFlashChipSize();
+    root["SDKVersion"] = ESP.getSdkVersion();
+    root["eHomeFwVer"] = eHomeFwVer;
+    root["time"] = actual_time;
+
+
+    root.printTo(response);
+    server.send(200, "text/json", response);
+  });
+
+
+
+  /*handling uploading firmware file */
+  server.on("/update", HTTP_POST, []() {
+    server.sendHeader("Connection", "close");
+    server.send(200, "text/plain", (Update.hasError()) ? "FAIL" : "OK");
+    esp_wifi_wps_disable(); ESP.restart();
+  }, []() {
+    HTTPUpload& upload = server.upload();
+    if (upload.status == UPLOAD_FILE_START) {
+      Serial.printf("Update: %s\n", upload.filename.c_str());
+      if (!Update.begin(UPDATE_SIZE_UNKNOWN)) { //start with max available size
+        Update.printError(Serial);
+      }
+    } else if (upload.status == UPLOAD_FILE_WRITE) {
+      /* flashing firmware to ESP*/
+      if (Update.write(upload.buf, upload.currentSize) != upload.currentSize) {
+        Update.printError(Serial);
+      }
+    } else if (upload.status == UPLOAD_FILE_END) {
+      if (Update.end(true)) { //true to set the size to the current progress
+        Serial.printf("Update Success: %u\nRebooting...\n", upload.totalSize);
+      } else {
+        Update.printError(Serial);
+      }
+    }
+  });
+
+
+
+  server.begin();
+
+  timeClient.begin();
+
+  mySwitch.enableTransmit(REMOTE);
+>>>>>>> 035654b824981fd7e0a30e68f9cc7f1b4fab87ca
 
         }
 
+<<<<<<< HEAD
            if (Liv2_remote == "STOP") {
           digitalWrite(Liv2Down, HIGH);
           digitalWrite(Liv2Up, HIGH);
@@ -1001,9 +1322,172 @@ void loop(void) {
 
       }
 
+=======
+
+  timer = timerBegin(0, 80, true); //timer 0, div 80
+  timerAttachInterrupt(timer, &resetModule, true);
+  timerAlarmWrite(timer, 6000000, false); //set time in us
+  //timerAlarmEnable(timer); //enable interrupt
+}
+
+void loop(void) {
+  server.handleClient();
+
+
+  poll_connection();
+
+  if (WiFi.isConnected())
+  {
 
 
 
+
+
+
+
+
+    ////////////////////LOCAL command//////////////////////////
+
+    swLiv1_state = digitalRead(swLiv1);
+    swLiv2_state = digitalRead(swLiv2);
+    swTer1_state = digitalRead(swTer1);
+    swTer2_state = digitalRead(swTer2);
+    swKit_state = digitalRead(swKit);
+
+
+    if (swLiv1_state == HIGH) {
+      Serial.println("Living shades 1 selected");
+      if (swUP == HIGH) {
+        Serial.println("going up");
+        //must send command to turn down the swDown
+        digitalWrite(Liv1Down, LOW); //safety to have only one relay on at one time
+        digitalWrite(Liv1Up, HIGH);
+      }
+      if (swDown == HIGH) {
+        Serial.println("going down");
+        //must send command to turn down the swUp
+        digitalWrite(Liv1Up, LOW); //safety to have only one relay on at one time
+        digitalWrite(Liv1Down, HIGH);
+      }
+    }
+
+
+
+
+    if (swLiv2_state == HIGH) {
+      Serial.println("Living shades 2 selected");
+      if (swUP == HIGH) {
+        Serial.println("going up");
+        //must send command to turn down the swDown
+        digitalWrite(Liv2Down, LOW); //safety to have only one relay on at one time
+        digitalWrite(Liv2Up, HIGH);
+      }
+      if (swDown == HIGH) {
+        Serial.println("going down");
+        //must send command to turn down the swUp
+        digitalWrite(Liv2Up, LOW); //safety to have only one relay on at one time
+        digitalWrite(Liv2Down, HIGH);
+      }
+    }
+
+
+
+    if (swTer1_state == HIGH) {
+      Serial.println("Terase shades 1 selected");
+      if (swUP == HIGH) {
+        Serial.println("going up");
+      }
+      if (swDown == HIGH) {
+        Serial.println("going down");
+      }
+    }
+    if (swTer2_state == HIGH) {
+      Serial.println("Terase shades 2 selected");
+      if (swUP == HIGH) {
+        Serial.println("going up");
+      }
+      if (swDown == HIGH) {
+        Serial.println("going down");
+      }
+    }
+    if (swKit_state == HIGH) {
+      Serial.println("Kitchen shades selected");
+      if (swUP == HIGH) {
+        Serial.println("going up");
+      }
+      if (swDown == HIGH) {
+        Serial.println("going down");
+      }
+    }
+
+
+
+
+
+
+
+    if (sw2_state == HIGH) {
+
+      if ( (sw1_state == HIGH && sw1_state != sw1PreviousState)  ) { //
+        Serial.println("Jaluzea 1 UP");
+        digitalWrite(Rel1Up, HIGH);
+
+        sw1PreviousState = HIGH;
+
+      }
+      if ( (sw1_state == LOW && sw1_state != sw1PreviousState)  ) { //
+        Serial.println("Jaluzea 1 up stop");
+        digitalWrite(Rel1Up, LOW);
+
+        sw1PreviousState = LOW;
+
+      }
+
+
+      if ( (sw3_state == HIGH && sw3_state != sw3PreviousState) ) { //
+        Serial.println("Jaluzea 1 Down");
+        digitalWrite(Rel1Down, HIGH);
+
+        sw3PreviousState = HIGH;
+
+
+
+      }
+      if ( (sw3_state == LOW && sw3_state != sw3PreviousState) ) { //
+        Serial.println("Jaluzea 1 down stop");
+        digitalWrite(Rel1Down, LOW);
+
+        sw3PreviousState = LOW;
+
+
+
+      }
+
+      if ( sw3_state == HIGH && sw1_state == HIGH) {
+
+        mySwitch.send("000000000000000000001010");
+        mySwitch.send("000000000000000000000110");
+        mySwitch.send("000000000000000000001110");
+        digitalWrite(Rel1Down, LOW);
+        digitalWrite(Rel1Up, LOW);
+>>>>>>> 035654b824981fd7e0a30e68f9cc7f1b4fab87ca
+
+
+      }
+
+
+    }
+
+
+    if (sw2_state == LOW) {
+
+      if ( (sw1_state == HIGH && sw1_state != sw1PreviousState)  ) { //
+        Serial.println("Jaluzea 2 UP");
+        digitalWrite(Rel2Up, HIGH);
+
+        sw1PreviousState = HIGH;
+
+<<<<<<< HEAD
    if (set_Office == false) { //if a new remote message arrived
         Serial.println("processing incomming message");
         if (Office_remote == "UP") {
@@ -1072,10 +1556,33 @@ void loop(void) {
           client.publish("eHomeShadesUnit1/log", "Kitchen shades STOP Remote");
 
         }
+=======
+      }
+      if ( (sw1_state == LOW && sw1_state != sw1PreviousState)  ) { //
+        Serial.println("Jaluzea 2 up stop");
+        digitalWrite(Rel2Up, LOW);
 
+        sw1PreviousState = LOW;
 
       }
 
+
+      if ( (sw3_state == HIGH && sw3_state != sw3PreviousState) ) { //
+        Serial.println("Jaluzea 2 Down");
+        digitalWrite(Rel2Down, HIGH);
+
+        sw3PreviousState = HIGH;
+>>>>>>> 035654b824981fd7e0a30e68f9cc7f1b4fab87ca
+
+
+      }
+      if ( (sw3_state == LOW && sw3_state != sw3PreviousState) ) { //
+        Serial.println("Jaluzea 2 down stop");
+        digitalWrite(Rel2Down, LOW);
+
+        sw3PreviousState = LOW;
+
+<<<<<<< HEAD
         ShadesControl();
 
 
@@ -1129,6 +1636,29 @@ void ShadesControl(){
                digitalWrite(Ter1Up,LOW);
         
            }                  
+=======
+
+
+      }
+
+      if ( sw3_state == HIGH && sw1_state == HIGH) {
+
+        //        mySwitch.send("000000000000000000001010");
+        //        mySwitch.send("000000000000000000000110");
+        //        mySwitch.send("000000000000000000001110");
+
+        mySwitch.send("000000000000000000000111");
+        mySwitch.send("000000000000000000001111");
+        mySwitch.send("000000000000000000001011");
+
+        digitalWrite(Rel2Down, LOW);
+        digitalWrite(Rel2Up, LOW);
+
+
+      }
+
+    }
+>>>>>>> 035654b824981fd7e0a30e68f9cc7f1b4fab87ca
 
            
             if  (swTer2_state == HIGH) {
@@ -1137,6 +1667,7 @@ void ShadesControl(){
           
              }
 
+<<<<<<< HEAD
             if (swKit_state == HIGH) {
        
                Serial.println("Kit shades going up");
@@ -1256,14 +1787,99 @@ void ShadesControl(){
          swDown_PrevState = LOW;
 
     }
+=======
 
 
 
 
+
+
+>>>>>>> 035654b824981fd7e0a30e68f9cc7f1b4fab87ca
+
+
+
+
+<<<<<<< HEAD
 
 
     ////////////////////// ZONE  B //////////////////
 
+=======
+    timerWrite(timer, 0); //reset timer (feed watchdog)
+
+
+    if (!client.connected()) {
+
+
+
+      long now = millis();
+
+      ///work it locally without MQTT client connected
+
+
+
+
+
+
+
+
+      //try to reconnect from time to time
+
+      if (now - lastReconnectAttempt > 10000) {
+        sendLog("MQTT not connected. Working in local mode");
+        lastReconnectAttempt = now;
+        // Attempt to reconnect
+        if (reconnect()) {
+          lastReconnectAttempt = 0;
+        }
+      }
+    } else {
+
+
+      client.loop();
+
+
+      //TODO for MQTT client connected
+
+
+
+      /////////////////REMOTE command//////////////////////
+      //    if (sw1_remote=="ON"){
+      //
+      //       digitalWrite(MotUp,HIGH);
+      //       //Serial.println("Jaluzea UP");
+      //    }else if (sw1_remote=="OFF"){
+      //       digitalWrite(MotUp,LOW);
+      //       //Serial.println("Jaluzea UP STOP");
+      //    }
+      //    if (sw2_remote=="ON"){
+      //       digitalWrite(MotDown,HIGH);
+      //       //Serial.println("Jaluzea Down");
+      //    }
+      //     else if (sw2_remote=="OFF"){
+      //       digitalWrite(MotDown,LOW);
+      //       //Serial.println("Jaluzea Down STOP");
+      //    }
+
+      ////////////////////LOCAL command//////////////////////////
+
+
+
+    }  //end ! client connected else
+
+  }//end wifi connected
+
+
+  if (! WiFi.isConnected()) {
+    timerWrite(timer, 0); //reset timer (feed watchdog)
+
+
+    // TODO work it without wifi
+
+
+
+  }
+>>>>>>> 035654b824981fd7e0a30e68f9cc7f1b4fab87ca
 
      if (swOfficeUp_state == HIGH && swOfficeUp_state!=swOfficeUp_PrevState ) {
              mySwitch.send("000000000000000000000010");//turn off Down sw
@@ -1272,6 +1888,10 @@ void ShadesControl(){
              swOfficeUp_PrevState=HIGH;
             }
 
+<<<<<<< HEAD
+=======
+  timerWrite(timer, 0); //reset timer (feed watchdog)
+>>>>>>> 035654b824981fd7e0a30e68f9cc7f1b4fab87ca
 
              if (swOfficeDown_state == HIGH && swOfficeDown_state!=swOfficeDown_PrevState ) {
                  mySwitch.send("000000000000000000001010");//turn off Up sw
