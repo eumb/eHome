@@ -7,15 +7,7 @@
 #include <Ticker.h>
 #include "ArduinoJson.h"
 #include <ESP8266WebServer.h>
-#include <ESP8266mDNS.h>
-
-#include <eHome.h>
-
-
-#define Strip1RedPin D1
-#define Strip1GreenPin D2
-#define Strip1BluePin D3
-#define Strip1WhitePin D4
+#include <ESP8266mDNS.h>    
 
 #define Strip2RedPin D5
 #define Strip2GreenPin D6
@@ -24,27 +16,215 @@
 
 
 
-int strip1RedLedVal;
-int strip1GreenLedVal;
-int strip1BlueLedVal;
-int strip1WhiteLedVal;
-int strip2RedLedVal;
-int strip2GreenLedVal;
-int strip2BlueLedVal;
-int strip2WhiteLedVal;
+const char* serverIndex = "<script src='https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js'></script>"
+"<form method='POST' action='#' enctype='multipart/form-data' id='upload_form'>"
+    "<input type='file' name='update'>"
+    "<input type='submit' value='Update'>"
+"</form>"
+"<div id='prg'>progress: 0%</div>"
+"<script>"
+"$('form').submit(function(e){"
+    "e.preventDefault();"
+      "var form = $('#upload_form')[0];"
+      "var data = new FormData(form);"
+      " $.ajax({"
+            "url: '/update',"
+            "type: 'POST',"               
+            "data: data,"
+            "contentType: false,"                  
+            "processData:false,"  
+            "xhr: function() {"
+                "var xhr = new window.XMLHttpRequest();"
+                "xhr.upload.addEventListener('progress', function(evt) {"
+                    "if (evt.lengthComputable) {"
+                        "var per = evt.loaded / evt.total;"
+                        "$('#prg').html('progress: ' + Math.round(per*100) + '%');"
+                    "}"
+               "}, false);"
+               "return xhr;"
+            "},"                                
+            "success:function(d, s) {"    
+                "console.log('success!')"
+           "},"
+            "error: function (a, b, c) {"
+            "}"
+          "});"
+"});"
+"</script>";
+
+int Strip2RedLedVal;
+int Strip2GreenLedVal;
+int Strip2BlueLedVal;
+int Strip2WhiteLedVal;
 
 
-const char* host = "RGBWStripKitchen";
+const char* host = "eHomeRGBWStrip2";
 
-const char* binFile="eHomeRGBWStrip1.ino.d1_mini.bin";
+const char* ssid     = "eHome";
+const char* password = "allI0Td3v1c3s!";
+IPAddress local_IP(192, 168, 2, 26);
+IPAddress gateway(192, 168, 2, 1);
+IPAddress subnet(255, 255, 0, 0);
+IPAddress primaryDNS(192, 168, 2, 1); //optional
+IPAddress secondaryDNS(8, 8, 8, 8); //optional
+
+
+char* serverMqtt = "192.168.2.10";
+const char* binFile="eHomeRGBWStrip2.ino.d1_mini.bin";
 const char* url      = "/api";
-const char* deviceId = "RGBWStripKitchen";
+const char* deviceId = "eHomeRGBWStrip2";
 const char* eHomeFwVer = "1.0";
 const char* deviceType = "LEDStrip";
 const char* deviceLocation = "Ground Floor";
-const char* deviceScope = "Kitchen LED Strip";
+const char* deviceScope = "Kitchen LED Strip2";
 
 
+ESP8266WebServer server(80);
+
+
+
+WiFiUDP ntpUDP;
+
+// By default 'time.nist.gov' is used with 60 seconds update interval and
+// no offset
+NTPClient timeClient(ntpUDP);
+
+// You can specify the time server pool and the offset, (in seconds)
+// additionaly you can specify the update interval (in milliseconds).
+// NTPClient timeClient(ntpUDP, "europe.pool.ntp.org", 3600, 60000);
+
+
+
+WiFiClient espClient;
+
+PubSubClient client(espClient);
+
+long lastReconnectAttempt = 0;
+long lastConnection = 0;
+
+//watcdog control variable
+Ticker secondTick;
+volatile int watchdogCount = 0;
+
+
+void ISRwatchdog(){
+
+  watchdogCount++;
+  if(watchdogCount == 50){
+    Serial.println("watchdog bites");
+    sendLog("WatchDog triggered. Going to reset");
+    ESP.restart();
+  }
+}
+
+void updateFW(){
+  sendLog("Updating....");
+  ESPhttpUpdate.rebootOnUpdate(true);
+  t_httpUpdate_return ret=ESPhttpUpdate.update("192.168.2.10", 80, "/eHomeRGBWStrip2.bin");
+  Serial.print("ret ");Serial.println(ret);
+
+
+   switch(ret) {
+            case HTTP_UPDATE_FAILED:
+                
+                Serial.printf("HTTP_UPDATE_FAILED Error (%d): %s\n", ESPhttpUpdate.getLastError(), ESPhttpUpdate.getLastErrorString().c_str());
+                Serial.println(binFile);
+                sendLog("HTTP_UPDATE_FAILED Error");
+                sendLog(ESPhttpUpdate.getLastErrorString().c_str());
+                break;
+
+            case HTTP_UPDATE_NO_UPDATES:
+                Serial.println("HTTP_UPDATE_NO_UPDATES");
+                sendLog("HTTP_UPDATE_NO_UPDATES");
+                break;
+
+            case HTTP_UPDATE_OK:
+                Serial.println("HTTP_UPDATE_OK");
+                sendLog("HTTP_UPDATE_OK");
+                break;
+        }
+        
+}
+
+////////////////////////  Log ////////////////////////////////////////////
+
+
+void sendLog(String message){
+
+  HTTPClient http;
+  
+  timeClient.update();
+  String actual_time=timeClient.getFormattedTime();
+  
+  StaticJsonBuffer<200> jsonBuffer;
+  JsonObject& root = jsonBuffer.createObject();
+
+  
+  root["time"] = actual_time;
+  root["deviceId"] = deviceId;
+  root["message"] = message;
+
+
+  
+  char JSONmessageBuffer[300];
+
+  root.prettyPrintTo(JSONmessageBuffer, sizeof(JSONmessageBuffer));
+  
+  
+  http.begin("http://192.168.2.10:2000/api/log"); //Specify destination for HTTP request
+  http.addHeader("Content-Type", "application/json"); //Specify content-type header
+  int httpResponseCode = http.POST(JSONmessageBuffer); //Send the actual POST request
+  
+  if(httpResponseCode>0){
+   
+      String response = http.getString();  //Get the response to the request
+   
+      Serial.println(httpResponseCode);   //Print return code
+      Serial.println(response);           //Print request answer
+   
+  }else{
+   
+      Serial.print("Error on sending POST: ");
+      Serial.println(httpResponseCode);
+   
+  }
+
+  
+}
+
+//////////////////////////////////////////////////////////////////////////
+
+    
+///////////////////////   MQTT connection management  //////////////////////
+//reconnect on MQTT connection lost
+boolean reconnect() {
+  
+  if (client.connect("eHomeRGBWStrip2")) {
+    // Once connected, publish an announcement...
+    client.publish("log","reconnected; Hello from eHomeRGBWStrip2");
+    // ... and resubscribe
+     client.subscribe("eHomeRGBWStrip2/colorValues");
+
+     client.subscribe("eHomeRGBWStrip2/white");
+
+     client.publish("eHomeRGBWStrip2/log","eHomeRGBWStrip2 client connected");
+
+     Serial.println("MQTT connected");
+     sendLog("MQTT connected");
+  
+  }
+  return client.connected();
+}
+
+///////////////////////////////////////////////////////////////////////////////
+
+
+
+
+
+////////////////  Wifi connection management  ///////////////////////
+
+/////////////////////////////////////////////////////////////////
 
 
 //////////////// MQTT callback ///////////////////////////////////
@@ -56,7 +236,7 @@ void callback(char* topic, byte* payload, unsigned int length) {
   Serial.print(topic);
   Serial.print("] ");
 
-  if(strcmp(topic,"RGBWStrip1Kitchen/colorValues")==0){
+  if(strcmp(topic,"eHomeRGBWStrip2/colorValues")==0){
     // check for messages on subscribed topics
   payload[length] = '\0';
   Serial.print("Topic: ");
@@ -84,81 +264,23 @@ void callback(char* topic, byte* payload, unsigned int length) {
 
 
   // using the locations of ; find values 
-  strip1RedLedVal = value.substring(0 , (firstClosingBracket - 1)).toInt();
-  strip1GreenLedVal = value.substring(firstClosingBracket , secondClosingBracket).toInt();
-  strip1BlueLedVal = value.substring((secondClosingBracket +1) , thirdClosingBracket).toInt();
+  Strip2RedLedVal = value.substring(0 , (firstClosingBracket - 1)).toInt();
+  Strip2GreenLedVal = value.substring(firstClosingBracket , secondClosingBracket).toInt();
+  Strip2BlueLedVal = value.substring((secondClosingBracket +1) , thirdClosingBracket).toInt();
 
 
 
 
-  analogWrite(Strip1GreenPin, strip1GreenLedVal*10.23);
-  analogWrite(Strip1RedPin, strip1RedLedVal*10.23);
-  analogWrite(Strip1BluePin, strip1BlueLedVal*10.23);
+  analogWrite(Strip2GreenPin, Strip2GreenLedVal*10.23);
+  analogWrite(Strip2RedPin, Strip2RedLedVal*10.23);
+  analogWrite(Strip2BluePin, Strip2BlueLedVal*10.23);
 
      
   }
 
 
-  if(strcmp(topic,"RGBWStrip2Kitchen/colorValues")==0){
-  // check for messages on subscribed topics
-  payload[length] = '\0';
-  Serial.print("Topic: ");
-  Serial.println(String(topic));
 
-  // convert payload to String
-  String value = String((char*)payload);
-  //value.trim();
-  Serial.print (value);
-
-// find first ; in the string
-  int firstClosingBracket = value.indexOf(';')+1;
-
-  // find second ; in the string
-  int secondOpeningBracket = firstClosingBracket + 1;
-  int secondClosingBracket = value.indexOf(';', secondOpeningBracket);
-
-  // find the third ; in the string
-  int thirdOpeningBracket = secondClosingBracket + 1;
-  int thirdClosingBracket = value.indexOf(';', thirdOpeningBracket);
-
-//  // find the fourth ; in the string
-//  int fourthOpeningBracket = thirdClosingBracket + 1;
-//  int fourthClosingBracket = value.indexOf(';', fourthOpeningBracket);
-
-
-  // using the locations of ; find values 
-  strip2RedLedVal = value.substring(0 , (firstClosingBracket - 1)).toInt();
-  strip2GreenLedVal = value.substring(firstClosingBracket , secondClosingBracket).toInt();
-  strip2BlueLedVal = value.substring((secondClosingBracket +1) , thirdClosingBracket).toInt();
-  //strip1WhiteLedVal = value.substring((thirdClosingBracket +1) , fourthClosingBracket).toInt();
-
-
-
-  analogWrite(Strip2GreenPin, strip2GreenLedVal*10.23);
-  analogWrite(Strip2RedPin, strip2RedLedVal*10.23);
-  analogWrite(Strip2BluePin, strip2BlueLedVal*10.23);
-  
-     
-  }
-
-  if (strcmp(topic,"Strip1Kitchen/white")==0){
-   // check for messages on subscribed topics
-  payload[length] = '\0';
-  Serial.print("Topic: ");
-  Serial.println(String(topic));
-
-   // convert payload to String
-  String value = String((char*)payload);
-  //value.trim();
-  Serial.print (value);
-  analogWrite(Strip1GreenPin, 0);
-  analogWrite(Strip1RedPin, 0);
-  analogWrite(Strip1BluePin, 0);
-  analogWrite(Strip1WhitePin, value.toInt()*10.23);
-
-}
-
-  if (strcmp(topic,"Strip2Kitchen/white")==0){
+  if (strcmp(topic,"eHomeRGBWStrip2/white")==0){
    // check for messages on subscribed topics
   payload[length] = '\0';
   Serial.print("Topic: ");
@@ -174,6 +296,8 @@ void callback(char* topic, byte* payload, unsigned int length) {
   analogWrite(Strip2WhitePin, value.toInt()*10.23);
 
 }
+
+ 
 
  }
 
@@ -192,17 +316,14 @@ void setup() {
   // put your setup code here, to run once:
   Serial.begin(115200);
 
-  pinMode(Strip1RedPin, OUTPUT);
-  pinMode(Strip1GreenPin, OUTPUT);
-  pinMode(Strip1BluePin, OUTPUT);
-  pinMode(Strip1WhitePin, OUTPUT);
-  
   pinMode(Strip2RedPin, OUTPUT);
   pinMode(Strip2GreenPin, OUTPUT);
   pinMode(Strip2BluePin, OUTPUT);
   pinMode(Strip2WhitePin, OUTPUT);
   
-
+ 
+  digitalWrite(Strip2WhitePin,LOW);
+ 
  // We start by connecting to a WiFi network
 
     Serial.println();
@@ -212,6 +333,7 @@ void setup() {
 
   
     WiFi.setAutoReconnect(false);
+    WiFi.config(local_IP, gateway, subnet, primaryDNS, secondaryDNS);
     WiFi.begin(ssid, password);
     WiFi.waitForConnectResult();
 
@@ -227,6 +349,7 @@ void setup() {
 //web server
   
   server.on("/", HTTP_GET, [](){
+      Serial.println("Root web server called");
       server.sendHeader("Connection", "close");
       server.send(200, "text/html", serverIndex);
     });
@@ -324,9 +447,12 @@ void setup() {
       yield();
     });
 
-  MDNS.addService("http", "tcp", 80);
+  //MDNS.addService("http", "tcp", 80);
 
     Serial.printf("Ready! Open http://%s.local in your browser\n", host);  
+
+
+    
   server.begin();
 
   timeClient.begin();
@@ -342,6 +468,8 @@ void setup() {
 }
 
 void loop() {
+
+  
  server.handleClient();
   
  
@@ -373,6 +501,7 @@ void loop() {
 
     client.loop();
     watchdogCount = 0;
+    //ESP.wdtFeed();
 
 
 

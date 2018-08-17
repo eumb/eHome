@@ -9,10 +9,10 @@
 #include <ESP8266WebServer.h>
 #include <ESP8266mDNS.h>    
 
-#define Strip1RedPin D5
-#define Strip1GreenPin D6
-#define Strip1BluePin D7
-#define Strip1WhitePin D8
+#define Strip3RedPin D5
+#define Strip3GreenPin D6
+#define Strip3BluePin D7
+#define Strip3WhitePin D8
 
 
 
@@ -52,33 +52,31 @@ const char* serverIndex = "<script src='https://ajax.googleapis.com/ajax/libs/jq
 "});"
 "</script>";
 
-int Strip1RedLedVal;
-int Strip1GreenLedVal;
-int Strip1BlueLedVal;
-int Strip1WhiteLedVal;
+int Strip3RedLedVal;
+int Strip3GreenLedVal;
+int Strip3BlueLedVal;
+int Strip3WhiteLedVal;
 
 
-
-const char* host = "eHomeRGBWStrip1";
+const char* host = "eHomeRGBWStrip3";
 
 const char* ssid     = "eHome";
 const char* password = "allI0Td3v1c3s!";
-IPAddress local_IP(192, 168, 2, 25);
+IPAddress local_IP(192, 168, 2, 27);
 IPAddress gateway(192, 168, 2, 1);
 IPAddress subnet(255, 255, 0, 0);
 IPAddress primaryDNS(192, 168, 2, 1); //optional
 IPAddress secondaryDNS(8, 8, 8, 8); //optional
 
 
-
 char* serverMqtt = "192.168.2.10";
-const char* binFile="eHomeRGBWStrip1.ino.d1_mini.bin";
+const char* binFile="eHomeRGBWStrip3.ino.d1_mini.bin";
 const char* url      = "/api";
-const char* deviceId = "eHomeRGBWStrip1";
+const char* deviceId = "eHomeRGBWStrip3";
 const char* eHomeFwVer = "1.0";
 const char* deviceType = "LEDStrip";
 const char* deviceLocation = "Ground Floor";
-const char* deviceScope = "Kitchen LED Strip1";
+const char* deviceScope = "Livingroom LED Strip";
 
 
 ESP8266WebServer server(80);
@@ -122,7 +120,7 @@ void ISRwatchdog(){
 void updateFW(){
   sendLog("Updating....");
   ESPhttpUpdate.rebootOnUpdate(true);
-  t_httpUpdate_return ret=ESPhttpUpdate.update("192.168.2.10", 80, "/eHomeRGBWStrip1.bin");
+  t_httpUpdate_return ret=ESPhttpUpdate.update("192.168.2.10", 80, "/eHomeRGBWStrip3.bin");
   Serial.print("ret ");Serial.println(ret);
 
 
@@ -201,15 +199,15 @@ void sendLog(String message){
 //reconnect on MQTT connection lost
 boolean reconnect() {
   
-  if (client.connect("eHomeRGBWStrip1")) {
+  if (client.connect("eHomeRGBWStrip3")) {
     // Once connected, publish an announcement...
-    client.publish("log","reconnected; Hello from eHomeRGBWStrip1");
+    client.publish("log","reconnected; Hello from eHomeRGBWStrip3");
     // ... and resubscribe
-     client.subscribe("eHomeRGBWStrip1/colorValues");
+     client.subscribe("eHomeRGBWStrip3/colorValues");
 
-     client.subscribe("eHomeRGBWStrip1/white");
+     client.subscribe("eHomeRGBWStrip3/white");
 
-     client.publish("eHomeRGBWStrip1/log","eHomeRGBWStrip1 client connected");
+     client.publish("eHomeRGBWStrip3/log","eHomeRGBWStrip3 client connected");
 
      Serial.println("MQTT connected");
      sendLog("MQTT connected");
@@ -238,7 +236,7 @@ void callback(char* topic, byte* payload, unsigned int length) {
   Serial.print(topic);
   Serial.print("] ");
 
-  if(strcmp(topic,"eHomeRGBWStrip1/colorValues")==0){
+  if(strcmp(topic,"eHomeRGBWStrip3/colorValues")==0){
     // check for messages on subscribed topics
   payload[length] = '\0';
   Serial.print("Topic: ");
@@ -266,23 +264,23 @@ void callback(char* topic, byte* payload, unsigned int length) {
 
 
   // using the locations of ; find values 
-  Strip1RedLedVal = value.substring(0 , (firstClosingBracket - 1)).toInt();
-  Strip1GreenLedVal = value.substring(firstClosingBracket , secondClosingBracket).toInt();
-  Strip1BlueLedVal = value.substring((secondClosingBracket +1) , thirdClosingBracket).toInt();
+  Strip3RedLedVal = value.substring(0 , (firstClosingBracket - 1)).toInt();
+  Strip3GreenLedVal = value.substring(firstClosingBracket , secondClosingBracket).toInt();
+  Strip3BlueLedVal = value.substring((secondClosingBracket +1) , thirdClosingBracket).toInt();
 
 
 
 
-  analogWrite(Strip1GreenPin, Strip1GreenLedVal*10.23);
-  analogWrite(Strip1RedPin, Strip1RedLedVal*10.23);
-  analogWrite(Strip1BluePin, Strip1BlueLedVal*10.23);
+  analogWrite(Strip3GreenPin, Strip3GreenLedVal*10.23);
+  analogWrite(Strip3RedPin, Strip3RedLedVal*10.23);
+  analogWrite(Strip3BluePin, Strip3BlueLedVal*10.23);
 
      
   }
 
 
 
-  if (strcmp(topic,"eHomeRGBWStrip1/white")==0){
+  if (strcmp(topic,"eHomeRGBWStrip3/white")==0){
    // check for messages on subscribed topics
   payload[length] = '\0';
   Serial.print("Topic: ");
@@ -292,10 +290,10 @@ void callback(char* topic, byte* payload, unsigned int length) {
   String value = String((char*)payload);
   //value.trim();
   Serial.print (value);
-  analogWrite(Strip1GreenPin, 0);
-  analogWrite(Strip1RedPin, 0);
-  analogWrite(Strip1BluePin, 0);
-  analogWrite(Strip1WhitePin, value.toInt()*10.23);
+  analogWrite(Strip3GreenPin, 0);
+  analogWrite(Strip3RedPin, 0);
+  analogWrite(Strip3BluePin, 0);
+  analogWrite(Strip3WhitePin, value.toInt()*10.23);
 
 }
 
@@ -318,13 +316,13 @@ void setup() {
   // put your setup code here, to run once:
   Serial.begin(115200);
 
-  pinMode(Strip1RedPin, OUTPUT);
-  pinMode(Strip1GreenPin, OUTPUT);
-  pinMode(Strip1BluePin, OUTPUT);
-  pinMode(Strip1WhitePin, OUTPUT);
+  pinMode(Strip3RedPin, OUTPUT);
+  pinMode(Strip3GreenPin, OUTPUT);
+  pinMode(Strip3BluePin, OUTPUT);
+  pinMode(Strip3WhitePin, OUTPUT);
   
  
-  digitalWrite(Strip1WhitePin,LOW);
+  digitalWrite(Strip3WhitePin,LOW);
  
  // We start by connecting to a WiFi network
 
